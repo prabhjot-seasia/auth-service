@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: auth-postgres-test
+    environment:
+      POSTGRES_DB: auth_service_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  auth-backend-test:
+    build: 
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: auth-backend-test
+    environment:
+      - DB_HOST=postgres-test
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=auth_service_test
+      - DB_SSL_MODE=disable
+      - SERVER_PORT=8081
+      - SERVER_HOST=0.0.0.0
+      - JWT_SECRET_KEY=test-secret-key-for-testing-only
+      - JWT_ACCESS_TOKEN_TTL=15
+      - JWT_REFRESH_TOKEN_TTL=10080
+      - GIN_MODE=debug
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  auth-frontend-test:
+    build:
+      context: ../frontend/react-app
+      dockerfile: Dockerfile.test
+    container_name: auth-react-frontend-test
+    ports:
+      - "3002:80"
+    depends_on:
+      - auth-backend-test
+    networks:
+      - test-network
+
+volumes:
+  postgres_test_data:
+
+networks:
+  test-network:
+    driver: bridge

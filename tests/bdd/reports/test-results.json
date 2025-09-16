@@ -1,0 +1,2886 @@
+[
+  {
+    "description": "  As a user of the authentication service\n  I want to be able to login and access resources based on my permissions\n  So that I can use the system securely",
+    "elements": [
+      {
+        "description": "",
+        "id": "authentication-and-authorization;successful-login-with-valid-credentials",
+        "keyword": "Scenario",
+        "line": 11,
+        "name": "Successful login with valid credentials",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 344362209
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14991457
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 427125
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 12,
+            "name": "I am on the login page",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:51"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 98920124
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 13,
+            "name": "I enter username \"admin\" and password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:57"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 55035665
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 14,
+            "name": "I click the login button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:62"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1034789624
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 15,
+            "name": "I should be redirected to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:67"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1531042
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 16,
+            "name": "I should see \"Authentication Service Dashboard\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:73"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2536499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 17,
+            "name": "I should see my roles and permissions",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:78"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4789500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 115749
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 21480166
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 10
+          },
+          {
+            "name": "@login",
+            "line": 10
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;failed-login-with-invalid-credentials",
+        "keyword": "Scenario",
+        "line": 20,
+        "name": "Failed login with invalid credentials",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 120904417
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 9798665
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 62415
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 21,
+            "name": "I am on the login page",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:51"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 53004875
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 22,
+            "name": "I enter username \"admin\" and password \"wrongpassword\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:57"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 45824583
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 23,
+            "name": "I click the login button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:62"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1031335708
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 24,
+            "name": "I should see an error message \"invalid credentials\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:86"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4171000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 25,
+            "name": "I should remain on the login page",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:92"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 304875
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 16666
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14815458
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 19
+          },
+          {
+            "name": "@login",
+            "line": 19
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;admin-user-can-access-permitted-management-sections",
+        "keyword": "Scenario",
+        "line": 28,
+        "name": "Admin user can access permitted management sections",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 114556082
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2782459
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 28832
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 29,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2213965459
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 30,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2064499
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Tab Name"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "My Permissions"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "User Management"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Roles"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Groups"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 31,
+            "name": "I should see the following tabs:",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:139"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2008304499
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Tab Name"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Services"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "API Documentation"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "And ",
+            "line": 37,
+            "name": "I should NOT see the following tabs:",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:175"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2005223917
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 41,
+            "name": "I should be able to access all visible tabs",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:195"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3047524874
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 42,
+            "name": "My permissions should show exactly \"7\" permissions",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:305"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3015812250
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 30833
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15151499
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 27
+          },
+          {
+            "name": "@permissions",
+            "line": 27
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;admin-user-can-fully-manage-services",
+        "keyword": "Scenario",
+        "line": 45,
+        "name": "Admin user can fully manage services",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 114709582
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2784625
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 25292
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 46,
+            "name": "I am logged in as \"admin\" with password \"admin123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2202942583
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 47,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1639333
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 48,
+            "name": "I click on the \"Services\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5000395082,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 49,
+            "name": "I should see the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:453"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 50,
+            "name": "I should see the \"Create Service\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:541"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 51,
+            "name": "I should see \"Edit\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 52,
+            "name": "I should see \"Delete\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 53,
+            "name": "I should see \"Suspend/Activate\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 54,
+            "name": "I should not see any \"Access denied\" messages",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:473"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 66290
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 18886834
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 44
+          },
+          {
+            "name": "@permissions",
+            "line": 44
+          },
+          {
+            "name": "@services",
+            "line": 44
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;admin-user-can-fully-manage-groups",
+        "keyword": "Scenario",
+        "line": 57,
+        "name": "Admin user can fully manage groups",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 125195666
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4144791
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 69874
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 58,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2218608749
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 59,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1779041
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 60,
+            "name": "I click on the \"Groups\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1024181833
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 61,
+            "name": "I should see the group list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:535"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2564207
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 62,
+            "name": "I should see the \"Create Group\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:541"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5001150666,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 63,
+            "name": "I should see \"Edit\" buttons in the group list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:494"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 64,
+            "name": "I should see \"Delete\" buttons in the group list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:494"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 65,
+            "name": "I should not see any \"Access denied\" messages",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:473"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 35874
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14518500
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 56
+          },
+          {
+            "name": "@permissions",
+            "line": 56
+          },
+          {
+            "name": "@groups",
+            "line": 56
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;admin-user-can-fully-manage-roles",
+        "keyword": "Scenario",
+        "line": 68,
+        "name": "Admin user can fully manage roles",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 116668625
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2375332
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 30125
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 69,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2197271208
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 70,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3781083
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 71,
+            "name": "I click on the \"Roles\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1009265166
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 72,
+            "name": "I should see the role list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:529"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2837792
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 73,
+            "name": "I should see the \"Create Role\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:541"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2943290
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 74,
+            "name": "I should see \"Edit\" buttons in the role list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:506"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1489457
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 75,
+            "name": "I should see \"Delete\" buttons in the role list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:506"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 721708
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 76,
+            "name": "I should not see any \"Access denied\" messages",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:473"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 847709
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15833
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 16248584
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 67
+          },
+          {
+            "name": "@permissions",
+            "line": 67
+          },
+          {
+            "name": "@roles",
+            "line": 67
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;standard-user-has-limited-access",
+        "keyword": "Scenario",
+        "line": 79,
+        "name": "Standard user has limited access",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 107181915
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1537958
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26417
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 80,
+            "name": "I am logged in as \"user1\" with password \"User@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5001138959,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 81,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Tab Name"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "My Permissions"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "User Management"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 82,
+            "name": "I should see the following tabs:",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:139"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 86,
+            "name": "I should not see admin-only tabs",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:248"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 87,
+            "name": "My permissions should show only \"users:read\" scope",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:279"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 88,
+            "name": "I click on the \"User Management\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 89,
+            "name": "I should see the user list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:424"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 90,
+            "name": "I should not see the \"Create User\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:430"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 91,
+            "name": "I should not see \"Edit\" buttons in the user list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:435"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 92,
+            "name": "I should not see \"Delete\" buttons in the user list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:435"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 38374
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14708334
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 78
+          },
+          {
+            "name": "@permissions",
+            "line": 78
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;user-can-logout-successfully",
+        "keyword": "Scenario",
+        "line": 95,
+        "name": "User can logout successfully",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 114416959
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2259624
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24875
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 96,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2199226542
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 97,
+            "name": "I click the logout button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:324"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1015146666
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 98,
+            "name": "I should be redirected to the login page",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:329"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 662125
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 99,
+            "name": "I should not be able to access protected pages",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:335"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1006591459
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 29374
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 13665583
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 94
+          },
+          {
+            "name": "@logout",
+            "line": 94
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;jwt-token-expires-and-refreshes-automatically",
+        "keyword": "Scenario",
+        "line": 102,
+        "name": "JWT token expires and refreshes automatically",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 104427125
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1781541
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26082
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 103,
+            "name": "I am logged in as \"user1\" with password \"User@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5000899665,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 104,
+            "name": "my JWT token is about to expire",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:342"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 105,
+            "name": "I make an API request",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:347"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 106,
+            "name": "the token should be refreshed automatically",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:360"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 107,
+            "name": "I should remain logged in",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:366"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 38833
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14501209
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 101
+          },
+          {
+            "name": "@jwt",
+            "line": 101
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;role-based-access-control-prevents-unauthorized-actions",
+        "keyword": "Scenario",
+        "line": 110,
+        "name": "Role-based access control prevents unauthorized actions",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 118196792
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2485584
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 25874
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 111,
+            "name": "I am logged in as \"user1\" with password \"User@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5000741625,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 112,
+            "name": "I try to create a new user via API",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:547"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 113,
+            "name": "I should receive a 403 Forbidden response",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:372"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 114,
+            "name": "the error message should be \"insufficient permissions\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:376"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 34083
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14501167
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 109
+          },
+          {
+            "name": "@rbac",
+            "line": 109
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;service-authentication-with-client-credentials",
+        "keyword": "Scenario",
+        "line": 117,
+        "name": "Service authentication with client credentials",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 105785833
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3541584
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 41041
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 118,
+            "name": "I have registered a service with client credentials",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:380"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 374541
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 119,
+            "name": "I request an access token using client_id and client_secret",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:388"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5592375
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 120,
+            "name": "I should receive a valid JWT token",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:403"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 454083
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 121,
+            "name": "I should be able to access service endpoints",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:409"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 189957
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 7166
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 25877834
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 116
+          },
+          {
+            "name": "@service",
+            "line": 116
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;user-with-read:service-permission-can-view-services-tab-but-cannot-modify",
+        "keyword": "Scenario",
+        "line": 124,
+        "name": "User with read:service permission can view Services tab but cannot modify",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 99678459
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1175332
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 29708
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 125,
+            "name": "I am logged in as \"user1\" with password \"User@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5000447290,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 126,
+            "name": "user1 has \"read:service\" permission",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:447"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 127,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Tab Name"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "My Permissions"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "User Management"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Services"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 128,
+            "name": "I should see the following tabs:",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:139"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 133,
+            "name": "I click on the \"Services\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 134,
+            "name": "I should see the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:453"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 135,
+            "name": "I should not see the \"Create Service\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:430"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 136,
+            "name": "I should not see \"Edit\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:459"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 137,
+            "name": "I should not see \"Delete\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:459"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 138,
+            "name": "I should not see \"Suspend/Activate\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:459"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 23832
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15735374
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 123
+          },
+          {
+            "name": "@permissions",
+            "line": 123
+          },
+          {
+            "name": "@service",
+            "line": 123
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;user-with-write:service-permission-can-manage-services",
+        "keyword": "Scenario",
+        "line": 141,
+        "name": "User with write:service permission can manage services",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 113121500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2322000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24541
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 142,
+            "name": "I am logged in as \"user1\" with password \"User@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5000680040,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 143,
+            "name": "user1 has \"write:service\" permission",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:447"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 144,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Tab Name"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "My Permissions"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "User Management"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Services"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 145,
+            "name": "I should see the following tabs:",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:139"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 150,
+            "name": "I click on the \"Services\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 151,
+            "name": "I should see the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:453"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 152,
+            "name": "I should see the \"Create Service\" button",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:541"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 153,
+            "name": "I should see \"Edit\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 154,
+            "name": "I should see \"Delete\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 155,
+            "name": "I should see \"Suspend/Activate\" buttons in the service list",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:480"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 69666
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14816124
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 140
+          },
+          {
+            "name": "@permissions",
+            "line": 140
+          },
+          {
+            "name": "@service",
+            "line": 140
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;admin-user-sees-permissions-grouped-by-services-in-my-permissions-tab",
+        "keyword": "Scenario",
+        "line": 158,
+        "name": "Admin user sees permissions grouped by services in My Permissions tab",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 139894709
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10444208
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 37791
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 159,
+            "name": "I am logged in as \"admin\" with password \"admin123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2216331082
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 160,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1403749
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 161,
+            "name": "I click on the \"My Permissions\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1019729749
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 162,
+            "name": "I should see my effective permissions grouped by services",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:651"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5001223541,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 163,
+            "name": "I should see \"auth-service Permissions\" section",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:684"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 164,
+            "name": "I should see \"Email Service Permissions\" section",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:684"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 165,
+            "name": "auth-service permissions should include \"users:read\", \"users:write\", \"roles:read\", \"roles:write\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:690"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 166,
+            "name": "Email Service permissions should include \"send:email\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:705"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 35291
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14053459
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 157
+          },
+          {
+            "name": "@permissions",
+            "line": 157
+          },
+          {
+            "name": "@services",
+            "line": 157
+          },
+          {
+            "name": "@grouped",
+            "line": 157
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;user-with-mixed-service-permissions-sees-proper-service-grouping",
+        "keyword": "Scenario",
+        "line": 169,
+        "name": "User with mixed service permissions sees proper service grouping",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 118493625
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3209333
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 31291
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 170,
+            "name": "I am logged in as \"group_admin\" with password \"admin123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2198838542
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 171,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1624124
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 172,
+            "name": "I click on the \"My Permissions\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1010335333
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 173,
+            "name": "I should see my effective permissions grouped by services",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:651"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5001655041,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 174,
+            "name": "I should see \"auth-service Permissions\" section",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:684"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 175,
+            "name": "I should not see permissions from services I don't have access to",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:717"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 176,
+            "name": "each service section should only show permissions for that specific service",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:728"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 30792
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15719166
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 168
+          },
+          {
+            "name": "@permissions",
+            "line": 168
+          },
+          {
+            "name": "@services",
+            "line": 168
+          },
+          {
+            "name": "@individual",
+            "line": 168
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;my-permissions-displays-service-names-correctly",
+        "keyword": "Scenario",
+        "line": 179,
+        "name": "My Permissions displays service names correctly",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 123184708
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2185749
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 29209
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 180,
+            "name": "I am logged in as \"admin\" with password \"admin123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:97"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2214532957
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 181,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1614667
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 182,
+            "name": "I click on the \"My Permissions\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1006894209
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 183,
+            "name": "each service permissions section should have a clear service name header",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:743"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2148750
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 184,
+            "name": "permissions should be displayed in \"resource:action\" format",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:756"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1922833
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 185,
+            "name": "permissions within each service should be sorted alphabetically",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:767"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4304958
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 186,
+            "name": "no permissions should appear under \"Unknown Service\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:781"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1107792
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 17832
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14210667
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 178
+          },
+          {
+            "name": "@permissions",
+            "line": 178
+          },
+          {
+            "name": "@display",
+            "line": 178
+          },
+          {
+            "name": "@format",
+            "line": 178
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "authentication-and-authorization;user-with-no-service-permissions-sees-appropriate-message",
+        "keyword": "Scenario",
+        "line": 189,
+        "name": "User with no service permissions sees appropriate message",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 111610958
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2866915
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "the database has been seeded with test data",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 66624
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 190,
+            "name": "I am logged in as a user with no permissions",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 191,
+            "name": "I navigate to the dashboard",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:131"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 192,
+            "name": "I click on the \"My Permissions\" tab",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:419"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 193,
+            "name": "I should see \"No permissions assigned\" message",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:472"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 194,
+            "name": "I should not see any service permission sections",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 10708
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12352832
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@auth",
+            "line": 188
+          },
+          {
+            "name": "@permissions",
+            "line": 188
+          },
+          {
+            "name": "@empty",
+            "line": 188
+          },
+          {
+            "name": "@service",
+            "line": 188
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "authentication-and-authorization",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Authentication and Authorization",
+    "tags": [],
+    "uri": "features/authentication.feature"
+  }
+]

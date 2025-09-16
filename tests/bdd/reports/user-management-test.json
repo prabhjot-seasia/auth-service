@@ -1,0 +1,177 @@
+[
+  {
+    "description": "  As an administrator\n  I want to manage users in the system\n  So that I can control access and permissions",
+    "elements": [
+      {
+        "description": "",
+        "id": "user-management;create-a-new-user",
+        "keyword": "Scenario",
+        "line": 11,
+        "name": "Create a new user",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 129629915
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:27"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15041332
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:92"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2212721583
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 12,
+            "name": "I am on the users management page",
+            "match": {
+              "location": "step-definitions/user-management.steps.js:4"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 21689832
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Field",
+                      "Value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Username",
+                      "newuser"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Email",
+                      "new@example.com"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Password",
+                      "NewUser@123"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "FirstName",
+                      "New"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "LastName",
+                      "User"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 13,
+            "name": "I create a new user with the following details:",
+            "match": {
+              "location": "step-definitions/user-management.steps.js:24"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5001309290,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 20,
+            "name": "the user should be created successfully",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:562"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 21,
+            "name": "the user should appear in the users list",
+            "match": {
+              "location": "step-definitions/user-management.steps.js:82"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 225000
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 19736958
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@users",
+            "line": 10
+          },
+          {
+            "name": "@create",
+            "line": 10
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "user-management",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "User Management",
+    "tags": [],
+    "uri": "features/user-management.feature"
+  }
+]

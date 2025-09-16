@@ -1,0 +1,204 @@
+[
+  {
+    "description": "  As an administrator\n  I want to manage services in the system\n  So that I can control OAuth2 client access and permissions",
+    "elements": [
+      {
+        "description": "",
+        "id": "service-management;create-a-new-service",
+        "keyword": "Scenario",
+        "line": 12,
+        "name": "Create a new service",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 135789292
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:27"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13270375
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I am logged in as \"admin\" with password \"Admin@123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:92"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2236617666
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I navigate to the \"Services\" tab",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:5"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5003004334,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 13,
+            "name": "I am on the services management page",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:18"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Field",
+                      "Value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Name",
+                      "Test Service"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Redirect URI",
+                      "https://test.example.com/oauth"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Scopes",
+                      "read write"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 14,
+            "name": "I create a new service with the following details:",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:28"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 19,
+            "name": "the service should be created successfully",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:196"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 20,
+            "name": "the service should appear in the services list",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:205"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 21,
+            "name": "the service should have a client ID",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:214"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 22,
+            "name": "the service should show as \"Active\"",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:224"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 130874
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14464041
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@services",
+            "line": 11
+          },
+          {
+            "name": "@create",
+            "line": 11
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "service-management",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Service Management",
+    "tags": [],
+    "uri": "features/service-management.feature"
+  }
+]

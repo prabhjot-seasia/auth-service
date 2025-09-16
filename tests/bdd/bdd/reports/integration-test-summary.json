@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-09-14 07:43:00",
+  "testEnvironment": {
+    "backend": "http://localhost:8081",
+    "frontend": "http://localhost:3002",
+    "database": "PostgreSQL test container"
+  },
+  "results": {
+    "totalScenarios": 0,
+    "passedScenarios": 0,
+    "failedScenarios": 0,
+    "passRate": 0
+  },
+  "testSuites": [
+    {"name": "authentication", "result": " 0/0 passed"}
+,
+    {"name": "user-management", "result": " 0/0 passed"}
+,
+    {"name": "role-management", "result": " 0/0 passed"}
+,
+    {"name": "group-management", "result": " 0/0 passed"}
+,
+    {"name": "service-management", "result": " 0/0 passed"}
+,
+    {"name": "api-tests", "result": " 0/0 passed"}
+,
+    {"name": "rbac-comprehensive", "result": " 0/0 passed"}
+,
+    {"name": "admin-core", "result": " 0/0 passed"}
+  ],
+  "readyForBuild": false
+}

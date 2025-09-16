@@ -1,0 +1,274 @@
+[
+  {
+    "description": "  As an administrator\n  I want to manage roles and assign groups\n  So that I can organize permissions and control user access",
+    "elements": [
+      {
+        "description": "",
+        "id": "role-management-with-group-assignment;create-a-new-role-using-wizard",
+        "keyword": "Scenario",
+        "line": 12,
+        "name": "Create a new role using wizard",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 123429625
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 7,
+            "name": "the authentication service is running",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:27"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 12418082
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 8,
+            "name": "I am logged in as \"admin\" with password \"admin123\"",
+            "match": {
+              "location": "step-definitions/authentication.steps.js:92"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 5002704124,
+              "error_message": "Error: function timed out, ensure the promise resolves within 5000 milliseconds\n    at Timeout.<anonymous> (/Users/prabhjot/seasia/auth-service/tests/bdd/node_modules/@cucumber/cucumber/lib/time.js:64:20)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "I navigate to the \"Roles\" tab",
+            "match": {
+              "location": "step-definitions/service-management.steps.js:5"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 13,
+            "name": "I am on the roles management page",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:4"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 14,
+            "name": "I click \"+ Create Role\" button",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:181"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 15,
+            "name": "I should see \"Step 1 of 2\" in the modal",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:402"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Field",
+                      "Value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Name",
+                      "API Manager"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Description",
+                      "Role for managing API access controls"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 16,
+            "name": "I enter the following basic details:",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:192"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 20,
+            "name": "I click \"Next: Group Assignment\"",
+            "match": {
+              "location": "step-definitions/group-management.steps.js:661"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 21,
+            "name": "I should see \"Step 2 of 2\" in the modal",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:402"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "Group"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "administrators"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "users"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 22,
+            "name": "I select groups from the multi-select dropdown:",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:273"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 26,
+            "name": "I click \"Create Role\"",
+            "match": {
+              "location": "step-definitions/group-management.steps.js:661"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 27,
+            "name": "the role should be created successfully",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:373"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 28,
+            "name": "the role should appear in the roles list with \"2 group(s)\"",
+            "match": {
+              "location": "step-definitions/role-management.steps.js:441"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 375833
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 22329999
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@roles",
+            "line": 11
+          },
+          {
+            "name": "@create",
+            "line": 11
+          },
+          {
+            "name": "@wizard",
+            "line": 11
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "role-management-with-group-assignment",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Role Management with Group Assignment",
+    "tags": [],
+    "uri": "features/role-management.feature"
+  }
+]

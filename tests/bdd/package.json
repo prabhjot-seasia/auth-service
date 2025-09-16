@@ -1,0 +1,25 @@
+{
+  "name": "bdd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/cucumber-js",
+    "test:auth": "./node_modules/.bin/cucumber-js --profile auth",
+    "test:responsive": "./node_modules/.bin/cucumber-js --profile responsive",
+    "test:browser": "./node_modules/.bin/cucumber-js --profile browser",
+    "test:all": "./node_modules/.bin/cucumber-js --profile default",
+    "test:users": "./node_modules/.bin/cucumber-js features/user-management.feature"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@playwright/test": "^1.55.0",
+    "bcrypt": "^6.0.0",
+    "chai": "^6.0.1",
+    "playwright": "^1.55.0"
+  }
+}
