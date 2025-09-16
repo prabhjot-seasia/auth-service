@@ -22,6 +22,16 @@
 .idea/
 .vscode/
 
+# Test artifacts
+tests/bdd/*.png
+tests/bdd/*.jpg
+tests/bdd/*.jpeg
+tests/bdd/*.gif
+tests/bdd/reports/
+tests/bdd/*-debug.png
+tests/bdd/*-error.png
+tests/bdd/*screenshot*.png
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
