@@ -22,7 +22,7 @@
 .idea/
 .vscode/
 
-# Test artifacts
+# Test artifacts and reports
 tests/bdd/*.png
 tests/bdd/*.jpg
 tests/bdd/*.jpeg
@@ -31,6 +31,18 @@ tests/bdd/reports/
 tests/bdd/*-debug.png
 tests/bdd/*-error.png
 tests/bdd/*screenshot*.png
+tests/bdd/*verification*.js
+tests/bdd/debug*.js
+tests/bdd/test_*.js
+*.test.conf
+Dockerfile.test
+
+# Generated documentation
+DOCUMENT_SERVICE_*.md
+SSO_INTEGRATION.md
+
+# Examples and demos
+examples/
 
 npm-debug.log*
 yarn-debug.log*
