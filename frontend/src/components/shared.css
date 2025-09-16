@@ -1,0 +1,289 @@
+/* Shared Component Styles */
+
+/* Simple Checkbox Styling - Exactly matching form-group design pattern */
+.form-group .checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.form-group .checkbox-container input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  margin: 0 0.5rem 0 0;
+  position: relative;
+}
+
+.form-group .checkbox-container input[type="checkbox"]:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.form-group .checkbox-container input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.form-group .checkbox-container input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group .checkbox-container label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  user-select: none;
+}
+
+/* Modern Toggle Switch - Perfect positioning and smooth animation */
+.form-group .toggle-container {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.form-group .toggle-container .toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3.25rem;
+  height: 1.75rem;
+  margin: 0 0.5rem 0 0;
+  cursor: pointer;
+}
+
+.form-group .toggle-container input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.form-group .toggle-container .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 0.875rem;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.form-group .toggle-container .toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.375rem;
+  width: 1.375rem;
+  left: 0.125rem;
+  bottom: 0.125rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.form-group .toggle-container input:checked + .toggle-slider {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.form-group .toggle-container input:checked + .toggle-slider:before {
+  transform: translateX(1.5rem);
+}
+
+.form-group .toggle-container input:focus + .toggle-slider {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.form-group .toggle-container input:disabled + .toggle-slider {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+}
+
+.form-group .toggle-container input:disabled + .toggle-slider:before {
+  background-color: #ced4da;
+}
+
+.form-group .toggle-container label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  user-select: none;
+}
+
+/* Legacy - Custom Checkbox Styling - Matching form-group design */
+.form-group.checkbox-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group.checkbox-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  user-select: none;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  margin: 0 0.5rem 0 0;
+  flex-shrink: 0;
+}
+
+.form-group.checkbox-group input[type="checkbox"]:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.875rem;
+}
+
+.form-group.checkbox-group input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group.checkbox-group input[type="checkbox"]:disabled {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+  cursor: not-allowed;
+}
+
+.form-group.checkbox-group input[type="checkbox"]:disabled + span {
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Compact checkbox for inline use */
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-inline label {
+  margin-bottom: 0;
+  font-weight: normal;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-inline input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.5rem 0 0;
+}
+
+.checkbox-inline input[type="checkbox"]:checked {
+  background-size: 0.75rem;
+}
+
+/* Modern Toggle Switch Style Checkbox - Matching form-group design */
+.form-group.toggle-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group.toggle-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: #495057;
+  user-select: none;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.form-group.toggle-group input[type="checkbox"] {
+  width: 2.75rem;
+  height: 1.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #ced4da;
+  border-radius: 0.75rem;
+  background-color: #e9ecef;
+  cursor: pointer;
+  transition: border-color 0.3s, background-color 0.3s;
+  margin: 0 0.5rem 0 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.form-group.toggle-group input[type="checkbox"]:before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.form-group.toggle-group input[type="checkbox"]:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.form-group.toggle-group input[type="checkbox"]:checked:before {
+  transform: translateX(1.25rem);
+}
+
+.form-group.toggle-group input[type="checkbox"]:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group.toggle-group input[type="checkbox"]:disabled {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+  cursor: not-allowed;
+}
+
+.form-group.toggle-group input[type="checkbox"]:disabled:before {
+  background-color: #ced4da;
+}
+
+.form-group.toggle-group input[type="checkbox"]:disabled + span {
+  color: #6c757d;
+  cursor: not-allowed;
+}

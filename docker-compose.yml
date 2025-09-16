@@ -51,7 +51,7 @@ services:
 
   react-frontend:
     build:
-      context: ./frontend/react-app
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: auth-react-frontend
     ports:

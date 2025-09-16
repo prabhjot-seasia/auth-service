@@ -1,0 +1,475 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-logo {
+  height: 40px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  width: auto;
+  max-width: 120px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #ddd;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.tabs button:hover {
+  color: #667eea;
+}
+
+.tabs button.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.tab-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.info-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.info-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #495057;
+  font-size: 1.1rem;
+}
+
+.info-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-card li {
+  padding: 0.5rem;
+  background: white;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  font-size: 14px;
+}
+
+.data-table {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 600;
+}
+
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.data-table tr:hover {
+  background: #f8f9fa;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN STYLES
+   ======================================== */
+
+/* Mobile Menu Toggle Button (Hidden on desktop) */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.mobile-menu-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+/* Tab button structure */
+.tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========================================
+   TABLET STYLES (768px and below)
+   ======================================== */
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tabs button {
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .data-table {
+    font-size: 14px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+/* ========================================
+   MOBILE STYLES (576px and below)
+   ======================================== */
+@media (max-width: 576px) {
+  /* Show mobile menu toggle */
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  /* Header adjustments */
+  .dashboard-header {
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-logo {
+    height: 32px;
+  }
+
+  .logout-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    max-width: 100px;
+  }
+
+  /* Content adjustments */
+  .dashboard-content {
+    padding: 0.5rem;
+    position: relative;
+  }
+
+  /* Mobile navigation */
+  .tabs {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 1rem 0;
+    margin: 0;
+    border: none;
+    flex-direction: column;
+    gap: 0;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .tabs.mobile-open {
+    left: 0;
+  }
+
+  .mobile-menu-overlay {
+    display: block;
+  }
+
+  .tabs button {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    justify-content: flex-start;
+    background: none;
+    color: #333;
+    font-size: 1rem;
+    margin: 0;
+    transition: background-color 0.3s;
+  }
+
+  .tabs button:hover {
+    background-color: #f8f9fa;
+    color: #667eea;
+  }
+
+  .tabs button.active {
+    background-color: #667eea;
+    color: white;
+    border-bottom-color: #667eea;
+  }
+
+  .tabs button {
+    font-size: 1rem;
+  }
+
+  /* Tab content adjustments */
+  .tab-content {
+    padding: 1rem;
+    margin-top: 0;
+  }
+
+  /* Info grid - single column on mobile */
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .info-card {
+    padding: 1rem;
+  }
+
+  .info-card h3 {
+    font-size: 1rem;
+  }
+
+  /* Table responsive handling */
+  .data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table table {
+    min-width: 600px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 12px;
+  }
+
+  .data-table th {
+    white-space: nowrap;
+  }
+
+  /* Status indicators */
+  .status {
+    font-size: 11px;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* ========================================
+   EXTRA SMALL MOBILE (480px and below)
+   ======================================== */
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 0.75rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .dashboard-logo {
+    height: 28px;
+  }
+
+  .header-left {
+    gap: 0.5rem;
+  }
+
+  .logout-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    max-width: 80px;
+  }
+
+  .dashboard-content {
+    padding: 0.25rem;
+  }
+
+  .tab-content {
+    padding: 0.75rem;
+  }
+
+  .tabs {
+    width: 260px;
+  }
+
+  .tabs button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .info-card {
+    padding: 0.75rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.4rem 0.2rem;
+    font-size: 11px;
+  }
+}
+
+/* iPhone SE and very small mobile (375px and below) */
+@media (max-width: 375px) {
+  .dashboard-content {
+    padding: 0.25rem;
+  }
+
+  .tab-content {
+    padding: 0.75rem;
+  }
+
+  .info-grid {
+    gap: 0.75rem;
+  }
+
+  .info-card {
+    padding: 0.75rem;
+  }
+
+  .info-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .info-card li {
+    padding: 0.4rem;
+    font-size: 13px;
+  }
+}
