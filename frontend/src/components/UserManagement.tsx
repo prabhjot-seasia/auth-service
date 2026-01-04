@@ -4,6 +4,7 @@ import './UserManagement.css';
 import './shared.css';
 import { RequirePermission } from '../contexts/PermissionContext';
 import ConfirmationModal from './ConfirmationModal';
+import { validateUsername, validateEmail, validatePassword, getPasswordStrength } from '../utils/validation';
 
 interface User {
   id: string;
@@ -12,7 +13,7 @@ interface User {
   first_name: string;
   last_name: string;
   is_active: boolean;
-  roles?: Array<{ id: string; name: string }>;
+  role?: { id: string; name: string };
   created_at: string;
 }
 
@@ -77,8 +78,8 @@ const UserCard: React.FC<UserCardProps> = ({
             <span className="user-card-value">{user.first_name} {user.last_name}</span>
           </div>
           <div className="user-card-field">
-            <span className="user-card-label">Roles:</span>
-            <span className="user-card-value">{user.roles?.map(role => role.name).join(', ') || 'No roles'}</span>
+            <span className="user-card-label">Role:</span>
+            <span className="user-card-value">{user.role?.name || 'No role assigned'}</span>
           </div>
           <div className="user-card-field">
             <span className="user-card-label">Created:</span>
@@ -143,6 +144,7 @@ export const UserManagement: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -164,11 +166,13 @@ export const UserManagement: React.FC = () => {
     newPassword: '',
     confirmPassword: ''
   });
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [pagination, setPagination] = useState<Pagination>({
     current_page: 1,
-    limit: 10,
+    limit: 50,
     total_users: 0,
     total_pages: 0,
     has_next: false,
@@ -197,12 +201,9 @@ export const UserManagement: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Infinite scroll for mobile
+  // Infinite scroll for all screen sizes
   useEffect(() => {
     const handleScroll = () => {
-      // Only enable infinite scroll on mobile/small screens
-      if (window.innerWidth > 768) return;
-      
       // Check if we're near the bottom and have more pages
       if (
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1000 &&
@@ -235,7 +236,7 @@ export const UserManagement: React.FC = () => {
       // Build query parameters
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '10'
+        limit: '50'
       });
       
       if (searchTerm.trim()) {
@@ -324,7 +325,7 @@ export const UserManagement: React.FC = () => {
         first_name: fullUser.first_name,
         last_name: fullUser.last_name,
         is_active: fullUser.is_active,
-        role_id: fullUser.roles && fullUser.roles.length > 0 ? fullUser.roles[0].id : ''
+        role_id: fullUser.role?.id || ''
       });
       setShowModal(true);
     }
@@ -334,17 +335,53 @@ export const UserManagement: React.FC = () => {
     setShowModal(false);
     setEditingUser(null);
     setError('');
-    setSubmitting(false); // Reset submitting state when modal closes
+    setFieldErrors({});
+    setSubmitting(false);
+  };
+
+  const handleViewDetails = (user: User) => {
+    setSelectedUser(user);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedUser(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
+
+    const errors: {[key: string]: string} = {};
+
+    if (!editingUser) {
+      const usernameValidation = validateUsername(formData.username);
+      if (!usernameValidation.isValid) {
+        errors.username = usernameValidation.errors.join('; ');
+      }
+
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        errors.password = passwordValidation.errors.join('; ');
+      }
+    }
+
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.errors.join('; ');
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       if (editingUser) {
-        // Update user
         const updateData: any = {
           email: formData.email,
           first_name: formData.first_name,
@@ -354,14 +391,12 @@ export const UserManagement: React.FC = () => {
 
         await axios.put(`http://localhost:8080/users/${editingUser.id}`, updateData);
 
-        // Update role if changed
-        if (formData.role_id) {
-          await axios.put(`http://localhost:8080/users/${editingUser.id}/roles`, {
-            role_ids: [formData.role_id]
+        if (formData.role_id !== (editingUser.role?.id || '')) {
+          await axios.put(`http://localhost:8080/users/${editingUser.id}/role`, {
+            role_id: formData.role_id || null
           });
         }
       } else {
-        // Create user
         const createData: any = {
           username: formData.username,
           email: formData.email,
@@ -370,20 +405,26 @@ export const UserManagement: React.FC = () => {
           last_name: formData.last_name
         };
 
-        // Create user with role if specified
         const userResponse = await axios.post('http://localhost:8080/users', createData);
-        
+
         if (formData.role_id && userResponse.data.id) {
-          await axios.put(`http://localhost:8080/users/${userResponse.data.id}/roles`, {
-            role_ids: [formData.role_id]
+          await axios.put(`http://localhost:8080/users/${userResponse.data.id}/role`, {
+            role_id: formData.role_id
           });
         }
       }
 
       await fetchUsers();
       closeModal();
+      showNotification(editingUser ? 'User updated successfully' : 'User created successfully', 'success');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Operation failed');
+      const errorMsg = err.response?.data?.error || 'Operation failed';
+      const field = err.response?.data?.field;
+      if (field) {
+        setFieldErrors({ [field]: errorMsg });
+      } else {
+        setError(errorMsg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -417,6 +458,36 @@ export const UserManagement: React.FC = () => {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // Validate on blur
+    if (name === 'username' && !editingUser) {
+      const validation = validateUsername(value);
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, username: validation.errors.join('; ') }));
+      }
+    } else if (name === 'email') {
+      const validation = validateEmail(value);
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, email: validation.errors.join('; ') }));
+      }
+    } else if (name === 'password' && !editingUser && value) {
+      const validation = validatePassword(value);
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, password: validation.errors.join('; ') }));
+      }
+    }
   };
 
   const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -470,7 +541,6 @@ export const UserManagement: React.FC = () => {
     setShowPasswordModal(true);
   };
 
-  // Close password modal
   const closePasswordModal = () => {
     setShowPasswordModal(false);
     setPasswordUser(null);
@@ -478,40 +548,54 @@ export const UserManagement: React.FC = () => {
       newPassword: '',
       confirmPassword: ''
     });
+    setError('');
+    setFieldErrors({});
   };
 
-  // Handle password update
   const handleUpdatePassword = async () => {
     if (!passwordUser) return;
 
+    setError('');
+    setFieldErrors({});
+
+    const errors: {[key: string]: string} = {};
+
     if (!passwordData.newPassword) {
-      setError('Please enter a new password');
-      return;
+      errors.newPassword = 'Please enter a new password';
+    } else {
+      const passwordValidation = validatePassword(passwordData.newPassword);
+      if (!passwordValidation.isValid) {
+        errors.newPassword = passwordValidation.errors.join('; ');
+      }
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
+      errors.confirmPassword = 'Passwords do not match';
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
     try {
       setSubmitting(true);
-      setError('');
-      
+
       await axios.put(`http://localhost:8080/users/${passwordUser.id}`, {
         ...passwordUser,
         password: passwordData.newPassword
       });
-      
+
       showNotification(`Password updated successfully for user ${passwordUser.username}`, 'success');
       closePasswordModal();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update password');
+      const errorMsg = err.response?.data?.error || 'Failed to update password';
+      const field = err.response?.data?.field;
+      if (field === 'password') {
+        setFieldErrors({ newPassword: errorMsg });
+      } else {
+        setError(errorMsg);
+      }
       showNotification('Failed to update password', 'error');
     } finally {
       setSubmitting(false);
@@ -525,26 +609,33 @@ export const UserManagement: React.FC = () => {
       ...prev,
       [name]: value
     }));
-  };
-
-  // Pagination functions
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= pagination.total_pages) {
-      fetchUsers(page);
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
 
-  const nextPage = () => {
-    if (pagination.has_next) {
-      goToPage(pagination.current_page + 1);
+  // Handle password field blur for validation
+  const handlePasswordBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    if (name === 'newPassword' && value) {
+      const validation = validatePassword(value);
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, newPassword: validation.errors.join('; ') }));
+      }
+    } else if (name === 'confirmPassword' && value) {
+      if (passwordData.newPassword !== value) {
+        setFieldErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      }
     }
   };
 
-  const prevPage = () => {
-    if (pagination.has_previous) {
-      goToPage(pagination.current_page - 1);
-    }
-  };
+  // No pagination functions needed with infinite scroll
 
   // CSV functions
   const downloadCSV = async () => {
@@ -676,25 +767,26 @@ export const UserManagement: React.FC = () => {
               <thead>
                 <tr>
                   <th>Username</th>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Roles</th>
+                  <th>Role</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length > 0 ? users.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.username}</td>
-                    <td>{user.email}</td>
-                    <td>{user.first_name} {user.last_name}</td>
+                  <tr key={user.id} className={`user-row ${user.is_active ? 'active-user' : 'inactive-user'}`}>
                     <td>
-                      <span className={`status ${user.is_active ? 'active' : 'inactive'}`}>
-                        {user.is_active ? 'Active' : 'Inactive'}
-                      </span>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleViewDetails(user);
+                        }}
+                        style={{ color: '#667eea', textDecoration: 'none', fontWeight: 500 }}
+                      >
+                        {user.username}
+                      </a>
                     </td>
-                    <td>{user.roles?.map(role => role.name).join(', ') || 'No roles'}</td>
+                    <td>{user.role?.name || 'No role assigned'}</td>
                     <td className="actions">
                       <div className="action-buttons">
                         <RequirePermission action="update" resource="users">
@@ -761,109 +853,23 @@ export const UserManagement: React.FC = () => {
             )}
           </div>
 
-          {/* Loading More Indicator for Mobile Infinite Scroll */}
+          {/* Loading More Indicator for Infinite Scroll */}
           {loadingMore && (
             <div className="loading-more">
               <div className="loading-spinner"></div>
               <span>Loading more users...</span>
             </div>
           )}
-
-          {/* Desktop Pagination Controls - Hidden on Mobile */}
-          <div className="pagination desktop-only">
-            <div className="pagination-wrapper">
-              <div className="pagination-info">
-                <span className="info-text">
-                  {pagination.total_users === 0 ? (
-                    'No users'
-                  ) : (
-                    `${((pagination.current_page - 1) * pagination.limit) + 1}-${Math.min(pagination.current_page * pagination.limit, pagination.total_users)} of ${pagination.total_users}`
-                  )}
-                </span>
-              </div>
-              
-              <div className="pagination-controls">
-                <button 
-                  onClick={prevPage} 
-                  disabled={!pagination.has_previous}
-                  className="pagination-nav prev-btn"
-                  title="Previous page"
-                  aria-label="Previous page"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                  </svg>
-                  <span className="nav-text">Prev</span>
-                </button>
-                
-                <div className="page-numbers">
-                  {/* Show first page */}
-                  {pagination.current_page > 2 && (
-                    <>
-                      <button
-                        onClick={() => goToPage(1)}
-                        className="page-btn"
-                      >
-                        1
-                      </button>
-                      {pagination.current_page > 3 && <span className="page-dots">...</span>}
-                    </>
-                  )}
-                  
-                  {/* Show current and adjacent pages */}
-                  {Array.from({ length: Math.min(3, pagination.total_pages) }, (_, i) => {
-                    const pageNum = Math.max(1, Math.min(pagination.current_page - 1 + i, pagination.total_pages - 2));
-                    if (pageNum > 0 && pageNum <= pagination.total_pages) {
-                      const showPage = 
-                        (pagination.total_pages <= 5) ||
-                        (pageNum === pagination.current_page) ||
-                        (pageNum === pagination.current_page - 1 && pageNum > 1) ||
-                        (pageNum === pagination.current_page + 1 && pageNum < pagination.total_pages);
-                      
-                      if (showPage) {
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => goToPage(pageNum)}
-                            className={`page-btn ${pageNum === pagination.current_page ? 'active' : ''}`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      }
-                    }
-                    return null;
-                  })}
-                  
-                  {/* Show last page */}
-                  {pagination.current_page < pagination.total_pages - 1 && pagination.total_pages > 1 && (
-                    <>
-                      {pagination.current_page < pagination.total_pages - 2 && <span className="page-dots">...</span>}
-                      <button
-                        onClick={() => goToPage(pagination.total_pages)}
-                        className="page-btn"
-                      >
-                        {pagination.total_pages}
-                      </button>
-                    </>
-                  )}
-                </div>
-                
-                <button 
-                  onClick={nextPage} 
-                  disabled={!pagination.has_next}
-                  className="pagination-nav next-btn"
-                  title="Next page"
-                  aria-label="Next page"
-                >
-                  <span className="nav-text">Next</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                  </svg>
-                </button>
-              </div>
+          
+          {/* Simple pagination info - no controls needed with infinite scroll */}
+          {pagination.total_users > 0 && (
+            <div className="pagination-info-simple">
+              <span className="info-text">
+                Showing {users.length} of {pagination.total_users} users
+                {pagination.has_next && <span> • Scroll down for more</span>}
+              </span>
             </div>
-          </div>
+          )}
         </>
       )}
 
@@ -874,9 +880,9 @@ export const UserManagement: React.FC = () => {
               <h3>{editingUser ? 'Edit User' : 'Create New User'}</h3>
               <button onClick={closeModal} className="close-btn">&times;</button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="user-form">
-              <div className="form-group">
+
+            <form onSubmit={handleSubmit} className="user-form" noValidate>
+              <div className={`form-group ${fieldErrors.username ? 'has-error' : ''}`}>
                 <label htmlFor="username">Username *</label>
                 <input
                   id="username"
@@ -884,25 +890,29 @@ export const UserManagement: React.FC = () => {
                   type="text"
                   value={formData.username}
                   onChange={handleInputChange}
+                  onBlur={handleBlur}
                   disabled={editingUser !== null}
-                  required={!editingUser}
+                  className={fieldErrors.username ? 'input-error' : ''}
                 />
+                {fieldErrors.username && <span className="field-error">{fieldErrors.username}</span>}
               </div>
 
-              <div className="form-group">
+              <div className={`form-group ${fieldErrors.email ? 'has-error' : ''}`}>
                 <label htmlFor="email">Email *</label>
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
+                  onBlur={handleBlur}
+                  className={fieldErrors.email ? 'input-error' : ''}
                 />
+                {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
               </div>
 
               {!editingUser && (
-                <div className="form-group">
+                <div className={`form-group ${fieldErrors.password ? 'has-error' : ''}`}>
                   <label htmlFor="password">Password *</label>
                   <input
                     id="password"
@@ -910,9 +920,10 @@ export const UserManagement: React.FC = () => {
                     type="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    required
-                    minLength={8}
+                    onBlur={handleBlur}
+                    className={fieldErrors.password ? 'input-error' : ''}
                   />
+                  {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
                 </div>
               )}
 
@@ -1003,21 +1014,21 @@ export const UserManagement: React.FC = () => {
             </div>
             
             <div className="user-form">
-              {error && <div className="error-message">{error}</div>}
-              
-              <form onSubmit={(e) => { e.preventDefault(); handleUpdatePassword(); }}>
-              <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
+
+              <form onSubmit={(e) => { e.preventDefault(); handleUpdatePassword(); }} noValidate>
+              <div className={`form-group ${fieldErrors.newPassword ? 'has-error' : ''}`}>
+                <label htmlFor="newPassword">New Password *</label>
                 <input
                   type="password"
                   id="newPassword"
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
+                  onBlur={handlePasswordBlur}
                   placeholder="Enter new password"
-                  required
-                  minLength={8}
+                  className={fieldErrors.newPassword ? 'input-error' : ''}
                 />
+                {fieldErrors.newPassword && <span className="field-error">{fieldErrors.newPassword}</span>}
                 <div className="password-requirements">
                   <strong>Password Requirements:</strong>
                   <ul>
@@ -1025,31 +1036,34 @@ export const UserManagement: React.FC = () => {
                     <li>At least one uppercase letter</li>
                     <li>At least one lowercase letter</li>
                     <li>At least one number</li>
+                    <li>At least one special character (!@#$%^&* etc.)</li>
                   </ul>
                 </div>
               </div>
-              
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
+
+              <div className={`form-group ${fieldErrors.confirmPassword ? 'has-error' : ''}`}>
+                <label htmlFor="confirmPassword">Confirm Password *</label>
                 <input
                   type="password"
                   id="confirmPassword"
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
+                  onBlur={handlePasswordBlur}
                   placeholder="Confirm new password"
-                  required
+                  className={fieldErrors.confirmPassword ? 'input-error' : ''}
                 />
+                {fieldErrors.confirmPassword && <span className="field-error">{fieldErrors.confirmPassword}</span>}
               </div>
-              
-              {passwordData.newPassword && passwordData.confirmPassword && (
+
+              {!fieldErrors.confirmPassword && passwordData.newPassword && passwordData.confirmPassword && (
                 passwordData.newPassword === passwordData.confirmPassword ? (
                   <div className="password-match-success">
                     ✓ Passwords match
                   </div>
                 ) : (
                   <div className="password-match-error">
-                    ⚠ Passwords do not match
+                    Passwords do not match
                   </div>
                 )
               )}
@@ -1072,6 +1086,89 @@ export const UserManagement: React.FC = () => {
                 </button>
               </div>
             </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Details Modal */}
+      {showDetailsModal && selectedUser && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: '700px' }}>
+            <div className="modal-header">
+              <h3>Details for User "{selectedUser.username}"</h3>
+              <button className="close-btn" onClick={handleCloseDetailsModal}>×</button>
+            </div>
+            
+            <div className="user-form">
+              {/* User Information Section */}
+              <div className="permissions-view-section">
+                <h4>User Information</h4>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <strong>Username:</strong> {selectedUser.username}
+                  </div>
+                  <div className="info-item">
+                    <strong>Email:</strong> {selectedUser.email}
+                  </div>
+                  <div className="info-item">
+                    <strong>Full Name:</strong> {selectedUser.first_name} {selectedUser.last_name}
+                  </div>
+                  <div className="info-item">
+                    <strong>Status:</strong> 
+                    <span className={`status ${selectedUser.is_active ? 'active' : 'inactive'}`} style={{ marginLeft: '0.5rem' }}>
+                      {selectedUser.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <strong>Created:</strong> {new Date(selectedUser.created_at).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Role Assignment Section */}
+              <div className="permissions-view-section">
+                <h4>Role Assignment</h4>
+                {selectedUser.role ? (
+                  <div className="group-membership-card">
+                    <div className="group-header">
+                      <h5>{selectedUser.role.name}</h5>
+                      <span className="group-description">Assigned role for this user</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="no-permissions">No role assigned to this user</p>
+                )}
+              </div>
+
+              {/* System Information */}
+              <div className="role-info-section">
+                <h4>System Information</h4>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <strong>User ID:</strong> 
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.9em', wordBreak: 'break-all' }}>
+                      {selectedUser.id}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <strong>Account Status:</strong> {selectedUser.is_active ? 'Active' : 'Inactive'}
+                  </div>
+                  <div className="info-item">
+                    <strong>Registration Date:</strong> {new Date(selectedUser.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="form-actions">
+                <button 
+                  type="button"
+                  onClick={handleCloseDetailsModal}
+                  className="btn-secondary"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

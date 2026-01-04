@@ -19,7 +19,8 @@ type User struct {
 	LastPasswordChange    *time.Time     `json:"last_password_change"`
 	ForcePasswordChange   bool           `json:"force_password_change" gorm:"default:false"`
 	PasswordHistory       []PasswordHistory `json:"-" gorm:"foreignKey:UserID"`
-	Roles                 []Role         `json:"roles" gorm:"many2many:user_roles"`
+	RoleID                *uuid.UUID     `json:"role_id" gorm:"type:uuid"`
+	Role                  *Role          `json:"role" gorm:"foreignKey:RoleID"`
 	Groups                []Group        `json:"groups" gorm:"many2many:user_groups"`
 	CreatedAt             time.Time      `json:"created_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
@@ -31,7 +32,7 @@ type Role struct {
 	Name        string         `json:"name" gorm:"uniqueIndex;not null"`
 	Description string         `json:"description"`
 	Permissions []Permission   `json:"permissions" gorm:"many2many:role_permissions"`
-	Users       []User         `json:"-" gorm:"many2many:user_roles"`
+	Users       []User         `json:"-" gorm:"foreignKey:RoleID"`
 	Groups      []Group        `json:"groups" gorm:"many2many:role_groups"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`

@@ -5,6 +5,7 @@ import { RequirePermission, usePermissions } from '../contexts/PermissionContext
 import './UserManagement.css';
 import './shared.css';
 import ConfirmationModal from './ConfirmationModal';
+import { validateName } from '../utils/validation';
 
 interface Group {
   id: string;
@@ -148,6 +149,7 @@ const GroupManagement: React.FC = () => {
   const [groupPermissions, setGroupPermissions] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -269,6 +271,7 @@ const GroupManagement: React.FC = () => {
     setSelectedServices([]);
     setEditingGroup(null);
     setWizardStep(1);
+    setFieldErrors({});
   };
 
   const resetServiceForm = () => {
@@ -331,9 +334,10 @@ const GroupManagement: React.FC = () => {
 
   const handleNextStep = () => {
     if (wizardStep === 1) {
-      // Validate basic details
-      if (!formData.name.trim()) {
-        showNotification('Please enter a group name', 'error');
+      setFieldErrors({});
+      const nameValidation = validateName(formData.name, 'Group name');
+      if (!nameValidation.isValid) {
+        setFieldErrors({ name: nameValidation.errors.join('; ') });
         return;
       }
       setWizardStep(2);
@@ -346,11 +350,40 @@ const GroupManagement: React.FC = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'name' && value) {
+      const validation = validateName(value, 'Group name');
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, name: validation.errors.join('; ') }));
+      }
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+    setFieldErrors({});
+
+    const nameValidation = validateName(formData.name, 'Group name');
+    if (!nameValidation.isValid) {
+      setFieldErrors({ name: nameValidation.errors.join('; ') });
+      return;
+    }
+
     if (editingGroup && wizardStep === 1) {
-      // Simple update without wizard for editing
       setSubmitting(true);
       try {
         await axios.put(`http://localhost:8080/groups/${editingGroup.id}`, formData, {
@@ -361,9 +394,13 @@ const GroupManagement: React.FC = () => {
         resetForm();
         fetchGroups();
       } catch (error: any) {
-        console.error('Error updating group:', error);
-        const errorMessage = error.response?.data?.error || 'Error updating group';
-        showNotification(errorMessage, 'error');
+        const errorMsg = error.response?.data?.error || 'Error updating group';
+        const field = error.response?.data?.field;
+        if (field) {
+          setFieldErrors({ [field]: errorMsg });
+        } else {
+          showNotification(errorMsg, 'error');
+        }
       } finally {
         setSubmitting(false);
       }
@@ -371,17 +408,14 @@ const GroupManagement: React.FC = () => {
     }
 
     if (wizardStep === 2) {
-      // Create group with service assignments
       setSubmitting(true);
       try {
-        // Create the group
         const groupResponse = await axios.post('http://localhost:8080/groups', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         const newGroupId = groupResponse.data.id;
-        
-        // Assign services if any selected
+
         if (serviceAssignments.length > 0) {
           await axios.put(`http://localhost:8080/groups/${newGroupId}/services`, {
             services: serviceAssignments
@@ -389,15 +423,21 @@ const GroupManagement: React.FC = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
         }
-        
+
         showNotification('Group created successfully', 'success');
         setShowModal(false);
         resetForm();
         fetchGroups();
       } catch (error: any) {
         console.error('Error creating group:', error);
-        const errorMessage = error.response?.data?.error || 'Error creating group';
-        showNotification(errorMessage, 'error');
+        const errorMsg = error.response?.data?.error || 'Error creating group';
+        const field = error.response?.data?.field;
+        if (field) {
+          setFieldErrors({ [field]: errorMsg });
+          setWizardStep(1); // Go back to step 1 to show the error
+        } else {
+          showNotification(errorMsg, 'error');
+        }
       } finally {
         setSubmitting(false);
       }
@@ -505,21 +545,20 @@ const GroupManagement: React.FC = () => {
       </div>
 
       {/* Desktop Table View */}
-      <div className="users-table-container">
-        <table className="users-table">
+      <div className="groups-table-container">
+        <table className="groups-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Description</th>
               <th>Services</th>
-              <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {!Array.isArray(groups) || groups.length === 0 ? (
               <tr>
-                <td colSpan={5} className="no-users">No groups found</td>
+                <td colSpan={4} className="no-users">No groups found</td>
               </tr>
             ) : (
               groups.map((group) => (
@@ -529,19 +568,22 @@ const GroupManagement: React.FC = () => {
                   <td>
                     {group.services && group.services.length > 0 ? (
                       <RequirePermission action="read" resource="groups">
-                        <button
-                          className="service-count-btn"
-                          onClick={() => handleViewPermissions(group)}
+                        <a 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleViewPermissions(group);
+                          }}
+                          style={{ color: '#667eea', textDecoration: 'none', fontWeight: 500 }}
                           title="View services and permissions"
                         >
                           {group.services.length} service(s)
-                        </button>
+                        </a>
                       </RequirePermission>
                     ) : (
                       <span className="no-services">No services</span>
                     )}
                   </td>
-                  <td>{new Date(group.created_at).toLocaleDateString()}</td>
                   <td className="actions">
                     <div className="action-buttons">
                       <RequirePermission action="update" resource="groups">
@@ -634,28 +676,32 @@ const GroupManagement: React.FC = () => {
               </div>
             )}
 
-            <form className="user-form" onSubmit={handleSubmit}>
+            <form className="user-form" onSubmit={handleSubmit} noValidate>
               {/* Step 1: Basic Details */}
               {wizardStep === 1 && (
                 <>
-                  <div className="form-group">
+                  <div className={`form-group ${fieldErrors.name ? 'has-error' : ''}`}>
                     <label>Group Name *</label>
                     <input
                       type="text"
+                      name="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
+                      onChange={handleInputChange}
+                      onBlur={handleBlur}
                       disabled={submitting}
                       placeholder="e.g., API Developers"
+                      className={fieldErrors.name ? 'input-error' : ''}
                     />
+                    {fieldErrors.name && <span className="field-error">{fieldErrors.name}</span>}
                   </div>
 
                   <div className="form-group">
                     <label>Description</label>
                     <input
                       type="text"
+                      name="description"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={handleInputChange}
                       disabled={submitting}
                       placeholder="Brief description of the group"
                     />

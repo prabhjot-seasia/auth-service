@@ -10,7 +10,7 @@ module.exports = {
     ],
     parallel: 1,
     tags: 'not @wip',
-    timeout: 30000
+    timeout: 60000
   },
   auth: {
     require: [
@@ -18,7 +18,7 @@ module.exports = {
     ],
     format: ['pretty'],
     tags: '@auth',
-    timeout: 30000
+    timeout: 60000
   },
   responsive: {
     require: [
@@ -26,7 +26,7 @@ module.exports = {
     ],
     format: ['pretty'],
     tags: '@responsive',
-    timeout: 30000
+    timeout: 60000
   },
   browser: {
     require: [

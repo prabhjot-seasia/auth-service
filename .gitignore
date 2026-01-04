@@ -27,10 +27,16 @@ tests/bdd/*.png
 tests/bdd/*.jpg
 tests/bdd/*.jpeg
 tests/bdd/*.gif
+tests/bdd/*.mp4
+tests/bdd/*.webm
 tests/bdd/reports/
-tests/bdd/*-debug.png
-tests/bdd/*-error.png
-tests/bdd/*screenshot*.png
+tests/bdd/test-results/
+tests/bdd/playwright-report/
+tests/bdd/screenshots/
+tests/bdd/videos/
+tests/bdd/*-debug.*
+tests/bdd/*-error.*
+tests/bdd/*screenshot*
 tests/bdd/*verification*.js
 tests/bdd/debug*.js
 tests/bdd/test_*.js
@@ -47,3 +53,4 @@ examples/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/CLAUDE.md

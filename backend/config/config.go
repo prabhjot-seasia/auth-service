@@ -68,7 +68,7 @@ func Load() (*Config, error) {
 	skipMigrations, _ := strconv.ParseBool(getEnv("SKIP_MIGRATIONS", "false"))
 	
 	// Password policy configuration
-	rotationDays, _ := strconv.Atoi(getEnv("PASSWORD_ROTATION_DAYS", "30"))
+	rotationDays, _ := strconv.Atoi(getEnv("PASSWORD_ROTATION_DAYS", "90"))
 	historyCount, _ := strconv.Atoi(getEnv("PASSWORD_HISTORY_COUNT", "5"))
 	minLength, _ := strconv.Atoi(getEnv("PASSWORD_MIN_LENGTH", "8"))
 	requireUppercase, _ := strconv.ParseBool(getEnv("PASSWORD_REQUIRE_UPPERCASE", "true"))

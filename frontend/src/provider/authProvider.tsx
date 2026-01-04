@@ -10,12 +10,16 @@ interface PasswordStatus {
 }
 
 interface LoginResponse {
+  success: boolean;
   passwordStatus?: PasswordStatus;
+  token?: string;
 }
 
 interface AuthContextType {
   token: string | null;
   login: (username: string, password: string) => Promise<LoginResponse>;
+  initiateLogin: () => void;
+  handleCallback: (code: string, state: string) => Promise<LoginResponse>;
   logout: () => void;
   refreshToken: () => Promise<void>;
   user: any;
@@ -36,23 +40,20 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // Initialize with token validation
   const initializeToken = () => {
     const storedToken = localStorage.getItem('jwt');
     if (!storedToken) return null;
-    
+
     try {
       const payload = JSON.parse(atob(storedToken.split('.')[1]));
       const currentTime = Date.now() / 1000;
       if (payload.exp && payload.exp < currentTime) {
-        // Token is expired, clear it
         localStorage.removeItem('jwt');
         localStorage.removeItem('refresh_token');
         return null;
       }
       return storedToken;
-    } catch (error) {
-      // Invalid token format, clear it
+    } catch {
       localStorage.removeItem('jwt');
       localStorage.removeItem('refresh_token');
       return null;
@@ -78,52 +79,152 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await axios.get('http://localhost:8080/me/permissions');
       setUser(response.data);
-    } catch (error) {
-      console.error('Failed to fetch user permissions:', error);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+      }
     }
   };
 
-  const login = async (username: string, password: string): Promise<LoginResponse> => {
-    try {
-      const response = await axios.post('http://localhost:8080/auth/token', {
-        grant_type: 'password',
-        username,
-        password,
-      });
-
-      const { access_token, refresh_token, password_status } = response.data;
-      
-      localStorage.setItem('jwt', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      
-      setToken(access_token);
-      setRefreshTokenValue(refresh_token);
-      
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      
-      
-      // Trigger a custom event to notify PermissionContext
-      window.dispatchEvent(new Event('auth-login'));
-      
-      return { passwordStatus: password_status };
-    } catch (error) {
-      // Ensure no tokens are left in localStorage on login failure
-      localStorage.removeItem('jwt');
-      localStorage.removeItem('refresh_token');
-      setToken(null);
-      setRefreshTokenValue(null);
-      delete axios.defaults.headers.common['Authorization'];
-      throw error;
-    }
-  };
-
-  const logout = () => {
+  const handleUnauthorized = () => {
     localStorage.removeItem('jwt');
     localStorage.removeItem('refresh_token');
     setToken(null);
     setRefreshTokenValue(null);
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
+    window.location.href = '/login';
+  };
+
+  const login = async (username: string, password: string): Promise<LoginResponse> => {
+    try {
+      const loginResponse = await axios.post('http://localhost:8080/auth/login', {
+        username,
+        password,
+      });
+
+      const { code, password_status } = loginResponse.data;
+
+      const currentParams = new URLSearchParams(window.location.search);
+      const tokenRequestData: any = {
+        grant_type: 'authorization_code',
+        code: code,
+      };
+
+      if (currentParams.has('client_id')) {
+        tokenRequestData.client_id = currentParams.get('client_id');
+        tokenRequestData.redirect_uri = currentParams.get('redirect_uri') || `${window.location.origin}/auth/callback`;
+      }
+
+      const tokenResponse = await axios.post('http://localhost:8080/auth/token', tokenRequestData);
+
+      const { access_token, refresh_token } = tokenResponse.data;
+
+      localStorage.setItem('jwt', access_token);
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+        setRefreshTokenValue(refresh_token);
+      }
+
+      setToken(access_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      window.dispatchEvent(new Event('auth-login'));
+      await fetchUserPermissions();
+
+      return { success: true, passwordStatus: password_status, token: access_token };
+    } catch {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('refresh_token');
+      setToken(null);
+      setRefreshTokenValue(null);
+      delete axios.defaults.headers.common['Authorization'];
+      return { success: false };
+    }
+  };
+
+  const initiateLogin = (): void => {
+    const clientId = process.env.REACT_APP_CLIENT_ID || 'auth-service-client';
+    const redirectUri = process.env.REACT_APP_REDIRECT_URI || `${window.location.origin}/auth/callback`;
+
+    const state = generateRandomString(32);
+    const codeVerifier = generateRandomString(128);
+    const codeChallenge = generateCodeChallenge(codeVerifier);
+
+    localStorage.setItem('oauth_state', state);
+    localStorage.setItem('code_verifier', codeVerifier);
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'openid profile',
+      state: state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256'
+    });
+
+    window.location.href = `http://localhost:8080/sso/login?${params}`;
+  };
+
+  const handleCallback = async (code: string, state: string): Promise<LoginResponse> => {
+    try {
+      const storedState = localStorage.getItem('oauth_state');
+      const codeVerifier = localStorage.getItem('code_verifier');
+
+      if (state !== storedState) {
+        throw new Error('Invalid state parameter');
+      }
+
+      const response = await axios.post('http://localhost:8080/auth/token', {
+        grant_type: 'authorization_code',
+        code: code,
+        client_id: process.env.REACT_APP_CLIENT_ID || 'auth-service-client',
+        redirect_uri: process.env.REACT_APP_REDIRECT_URI || `${window.location.origin}/auth/callback`,
+        code_verifier: codeVerifier
+      });
+
+      const { access_token, refresh_token } = response.data;
+
+      localStorage.setItem('jwt', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
+      localStorage.removeItem('oauth_state');
+      localStorage.removeItem('code_verifier');
+
+      setToken(access_token);
+      setRefreshTokenValue(refresh_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      window.dispatchEvent(new Event('auth-login'));
+      await fetchUserPermissions();
+
+      return { success: true };
+    } catch {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('oauth_state');
+      localStorage.removeItem('code_verifier');
+      setToken(null);
+      setRefreshTokenValue(null);
+      delete axios.defaults.headers.common['Authorization'];
+      return { success: false };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const currentToken = localStorage.getItem('jwt');
+      if (currentToken) {
+        await axios.post('http://localhost:8080/sso/logout', { token: currentToken });
+      }
+    } catch {
+      // Proceed with local logout even if SSO logout fails
+    } finally {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('refresh_token');
+      setToken(null);
+      setRefreshTokenValue(null);
+      setUser(null);
+      delete axios.defaults.headers.common['Authorization'];
+    }
   };
 
   const refreshToken = async () => {
@@ -138,45 +239,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       const { access_token } = response.data;
-      
+
       localStorage.setItem('jwt', access_token);
       setToken(access_token);
-      
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       await fetchUserPermissions();
-    } catch (error) {
-      logout();
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        handleUnauthorized();
+      } else {
+        logout();
+      }
       throw error;
     }
   };
 
   axios.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    async (error: any) => {
       const originalRequest = error.config;
-      
-      // Don't try to refresh tokens for authentication endpoints
-      const isAuthEndpoint = originalRequest.url?.includes('/auth/token');
-      
-      if (error.response?.status === 401 && !originalRequest._retry && refreshTokenValue && !isAuthEndpoint) {
-        originalRequest._retry = true;
-        
-        try {
-          await refreshToken();
-          return axios(originalRequest);
-        } catch (refreshError) {
-          logout();
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
+
+      if (error.response?.status === 401) {
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/token') ||
+                              originalRequest.url?.includes('/auth/login');
+
+        if (!originalRequest._retry && refreshTokenValue && !isAuthEndpoint) {
+          originalRequest._retry = true;
+
+          try {
+            await refreshToken();
+            return axios(originalRequest);
+          } catch (refreshError) {
+            handleUnauthorized();
+            return Promise.reject(refreshError);
+          }
+        } else {
+          handleUnauthorized();
+          return Promise.reject(error);
         }
       }
-      
+
       return Promise.reject(error);
     }
   );
 
+  const generateRandomString = (length: number): string => {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => ('0' + byte.toString(16)).slice(-2)).join('');
+  };
+
+  const generateCodeChallenge = (codeVerifier: string): string => {
+    return btoa(codeVerifier)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  };
+
   return (
-    <AuthContext.Provider value={{ token, login, logout, refreshToken, user }}>
+    <AuthContext.Provider value={{ token, login, initiateLogin, handleCallback, logout, refreshToken, user }}>
       {children}
     </AuthContext.Provider>
   );

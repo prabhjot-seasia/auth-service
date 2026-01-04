@@ -1,0 +1,36 @@
+# Docker Compose configuration for external database setup
+# Use this when you have an external PostgreSQL database
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.external-db.yml up
+
+version: '3.8'
+
+services:
+  # Override auth-backend to remove postgres dependency
+  auth-backend:
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSL_MODE=${DB_SSL_MODE}
+    depends_on: []
+    networks:
+      - auth-network
+      - default
+
+  # Frontend remains the same
+  react-frontend:
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"
+
+# Remove postgres service and volumes when using external DB
+volumes:
+  postgres_data: null
+
+networks:
+  auth-network:
+    driver: bridge
+  default:
+    name: bridge
+    external: true

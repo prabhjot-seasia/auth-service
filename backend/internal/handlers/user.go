@@ -17,12 +17,16 @@ import (
 )
 
 type UserHandler struct {
-	userService *services.UserService
+	userService       *services.UserService
+	validationService *services.ValidationService
+	passwordService   *services.PasswordService
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
+func NewUserHandler(userService *services.UserService, validationService *services.ValidationService, passwordService *services.PasswordService) *UserHandler {
 	return &UserHandler{
-		userService: userService,
+		userService:       userService,
+		validationService: validationService,
+		passwordService:   passwordService,
 	}
 }
 
@@ -35,7 +39,7 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Email     string `json:"email" binding:"email"`
+	Email     string `json:"email" binding:"omitempty,email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	IsActive  *bool  `json:"is_active"`
@@ -51,6 +55,24 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if err := h.validationService.ValidateUsername(req.Username, nil); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "username"})
+		return
+	}
+
+	if err := h.validationService.ValidateEmail(req.Email, nil); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "email"})
+		return
+	}
+
+	if h.passwordService != nil {
+		validation := h.passwordService.ValidatePasswordComplexity(req.Password)
+		if !validation.IsValid {
+			c.JSON(http.StatusBadRequest, gin.H{"error": strings.Join(validation.Errors, "; "), "field": "password"})
+			return
+		}
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -80,7 +102,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	// Parse pagination parameters
 	pageStr := c.DefaultQuery("page", "1")
-	limitStr := c.DefaultQuery("limit", "10")
+	limitStr := c.DefaultQuery("limit", "50")
 	search := c.Query("search")
 	status := c.Query("status")
 	
@@ -91,7 +113,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 || limit > 100 {
-		limit = 10
+		limit = 50
 	}
 
 	users, total, err := h.userService.GetUsersPaginated(page, limit, search, status)
@@ -161,7 +183,11 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if req.Email != "" {
+	if req.Email != "" && req.Email != user.Email {
+		if err := h.validationService.ValidateEmail(req.Email, &userID); err != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "email"})
+			return
+		}
 		user.Email = req.Email
 	}
 	if req.FirstName != "" {
@@ -173,15 +199,24 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	if req.IsActive != nil {
 		user.IsActive = *req.IsActive
 	}
-	
-	// Handle password update
+
 	if req.Password != "" {
+		if h.passwordService != nil {
+			validation := h.passwordService.ValidatePasswordComplexity(req.Password)
+			if !validation.IsValid {
+				c.JSON(http.StatusBadRequest, gin.H{"error": strings.Join(validation.Errors, "; "), "field": "password"})
+				return
+			}
+		}
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
 			return
 		}
 		user.Password = string(hashedPassword)
+		user.ForcePasswordChange = true
+		user.LastPasswordChange = nil
+		user.PasswordExpiresAt = nil
 	}
 
 	if err := h.userService.UpdateUser(user); err != nil {
@@ -224,6 +259,42 @@ func (h *UserHandler) GetUserRoles(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, roles)
+}
+
+type AssignRoleRequest struct {
+	RoleID *string `json:"role_id"` // pointer to allow null
+}
+
+func (h *UserHandler) AssignRole(c *gin.Context) {
+	id := c.Param("id")
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req AssignRoleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var roleID *uuid.UUID
+	if req.RoleID != nil && *req.RoleID != "" {
+		parsedRoleID, err := uuid.Parse(*req.RoleID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role ID"})
+			return
+		}
+		roleID = &parsedRoleID
+	}
+
+	if err := h.userService.AssignRole(userID, roleID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "role assigned successfully"})
 }
 
 func (h *UserHandler) AssignRoles(c *gin.Context) {
@@ -276,11 +347,11 @@ func (h *UserHandler) ExportUsersCSV(c *gin.Context) {
 
 	// Write user data
 	for _, user := range users {
-		roleNames := make([]string, len(user.Roles))
-		for i, role := range user.Roles {
-			roleNames[i] = role.Name
+		// Get single role name
+		rolesStr := ""
+		if user.Role != nil {
+			rolesStr = user.Role.Name
 		}
-		rolesStr := strings.Join(roleNames, ";")
 
 		record := []string{
 			user.Username,

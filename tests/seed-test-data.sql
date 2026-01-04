@@ -22,10 +22,10 @@ INSERT INTO roles (id, name, description, created_at, updated_at) VALUES
 ('5fd077fb-a958-6512-d57a-a0f598685ca8', 'group_admin', 'Group admin role', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- Insert test users with Test@123 password
+-- Insert test users with Admin@123 password for admin and user1, Test@123 for others
 INSERT INTO users (id, username, email, password, first_name, last_name, is_active, created_at, updated_at) VALUES 
-('0b56d83b-a560-4639-92f5-20cd040c1bcc', 'admin', 'admin@example.com', '$2a$10$u4JHc1aGlwzXuVqVEy5FcO//jVVmV8m6W6WO3yjlz0PBxLE1Q2FGG', 'Admin', 'User', true, NOW(), NOW()),
-('1c67e94c-b671-5740-a3a6-21de151c2cdd', 'user1', 'user1@example.com', '$2a$10$u4JHc1aGlwzXuVqVEy5FcO//jVVmV8m6W6WO3yjlz0PBxLE1Q2FGG', 'User', 'One', true, NOW(), NOW()),
+('0b56d83b-a560-4639-92f5-20cd040c1bcc', 'admin', 'admin@example.com', '$2a$10$paveO9EskWCqbBteiDSwReeTptmWLSqsDgmPktEin0GKUHTUf2ViG', 'Admin', 'User', true, NOW(), NOW()),
+('1c67e94c-b671-5740-a3a6-21de151c2cdd', 'user1', 'user1@example.com', '$2a$10$paveO9EskWCqbBteiDSwReeTptmWLSqsDgmPktEin0GKUHTUf2ViG', 'User', 'One', true, NOW(), NOW()),
 ('2d78fa5d-c782-6851-b4b7-32ef262d3dee', 'user2', 'user2@example.com', '$2a$10$u4JHc1aGlwzXuVqVEy5FcO//jVVmV8m6W6WO3yjlz0PBxLE1Q2FGG', 'User', 'Two', true, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 

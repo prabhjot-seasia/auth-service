@@ -6,9 +6,16 @@ interface ApiEndpoint {
   path: string;
   description: string;
   permission?: string;
-  requestExample?: string;
+  requestBody?: any;
   responseExample?: string;
-  parameters?: Array<{ name: string; type: string; description: string; required: boolean }>;
+  parameters?: Array<{ 
+    name: string; 
+    type: string; 
+    in: 'query' | 'path' | 'header'; 
+    description: string; 
+    required: boolean;
+    default?: any;
+  }>;
 }
 
 interface ApiSection {
@@ -17,17 +24,13 @@ interface ApiSection {
   endpoints: ApiEndpoint[];
 }
 
-interface CodeExample {
-  language: string;
-  code: string;
-}
-
 export const ApiDocumentation: React.FC = () => {
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
-    integration: true // Start with integration section expanded
-  });
-
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('curl');
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [testingEndpoint, setTestingEndpoint] = useState<string | null>(null);
+  const [requestParams, setRequestParams] = useState<{ [key: string]: any }>({});
+  const [requestBody, setRequestBody] = useState<string>('');
+  const [response, setResponse] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   const toggleSection = (sectionKey: string) => {
     setExpandedSections(prev => ({
@@ -36,1020 +39,155 @@ export const ApiDocumentation: React.FC = () => {
     }));
   };
 
-  const integrationExamples: { [key: string]: CodeExample[] } = {
-    'token-validation': [
-      {
-        language: 'curl',
-        code: `# ENHANCED SECURITY: Dual Authentication Required
+  const getAuthToken = () => {
+    return localStorage.getItem('authToken') || '';
+  };
 
-# Method 1: GET with dual authentication headers
-curl -X GET http://localhost:8080/sso/validate \\
-  -H "Authorization: Bearer your-jwt-token" \\
-  -H "X-Client-ID: your-service-client-id" \\
-  -H "X-Client-Secret: your-service-client-secret"
-
-# Method 2: POST with service credentials in body
-curl -X POST http://localhost:8080/sso/validate \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "token": "your-jwt-token",
-    "client_id": "your-service-client-id",
-    "client_secret": "your-service-client-secret"
-  }'`
-      },
-      {
-        language: 'javascript',
-        code: `// ENHANCED SECURITY: Dual Authentication Required
-
-// Method 1: Using fetch API with headers
-const validateToken = async (token, clientId, clientSecret) => {
-  const response = await fetch('http://localhost:8080/sso/validate', {
-    method: 'GET',
-    headers: {
-      'Authorization': \`Bearer \${token}\`,
-      'X-Client-ID': clientId,
-      'X-Client-Secret': clientSecret
-    }
-  });
-  
-  const result = await response.json();
-  return result.valid;
-};
-
-// Method 2: Using axios with POST body
-import axios from 'axios';
-
-const validateToken = async (token, clientId, clientSecret) => {
-  try {
-    const response = await axios.post('http://localhost:8080/sso/validate', {
-      token: token,
-      client_id: clientId,
-      client_secret: clientSecret
-    });
-    return response.data.valid;
-  } catch (error) {
-    return false;
-  }
-};`
-      },
-      {
-        language: 'react',
-        code: `// ENHANCED SECURITY: React Component with Dual Authentication
-
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const SSOTokenValidator = ({ token, clientId, clientSecret }) => {
-  const [validationResult, setValidationResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const validateToken = async () => {
+  const executeRequest = async (endpoint: ApiEndpoint) => {
     setLoading(true);
-    try {
-      // Method 1: Using headers
-      const response = await axios.get('http://localhost:8080/sso/validate', {
-        headers: {
-          'Authorization': \`Bearer \${token}\`,
-          'X-Client-ID': clientId,
-          'X-Client-Secret': clientSecret
-        }
-      });
-
-      setValidationResult(response.data);
-    } catch (error) {
-      setValidationResult({ 
-        valid: false, 
-        error: error.response?.data?.error || error.message 
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (token && clientId && clientSecret) {
-      validateToken();
-    }
-  }, [token, clientId, clientSecret]);
-
-  if (loading) return <div>Validating token...</div>;
-  
-  return (
-    <div>
-      {validationResult?.valid ? (
-        <div className="success">
-          <h3>Token Valid ✅</h3>
-          <p>User: {validationResult.username}</p>
-          <p>Service: {validationResult.service_name}</p>
-          <p>Roles: {validationResult.roles?.join(', ')}</p>
-        </div>
-      ) : (
-        <div className="error">
-          <h3>Token Invalid ❌</h3>
-          <p>Error: {validationResult?.error}</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Usage in your app
-const App = () => {
-  const [userToken] = useState('your-jwt-token');
-  const serviceCredentials = {
-    clientId: 'your-service-client-id',
-    clientSecret: 'your-service-client-secret'
-  };
-
-  return (
-    <SSOTokenValidator 
-      token={userToken}
-      clientId={serviceCredentials.clientId}
-      clientSecret={serviceCredentials.clientSecret}
-    />
-  );
-};`
-      },
-      {
-        language: 'java',
-        code: `// ENHANCED SECURITY: Spring Boot with RestTemplate
-@Service
-public class SSOService {
-    
-    private final RestTemplate restTemplate;
-    private final String authServiceUrl = "http://localhost:8080";
-    private final String clientId = "your-service-client-id";
-    private final String clientSecret = "your-service-client-secret";
-    
-    // Method 1: Using headers
-    public TokenValidationResponse validateToken(String token) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        headers.set("X-Client-ID", clientId);
-        headers.set("X-Client-Secret", clientSecret);
-        
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-        
-        try {
-            ResponseEntity<TokenValidationResponse> response = 
-                restTemplate.exchange(
-                    authServiceUrl + "/sso/validate", 
-                    HttpMethod.GET, 
-                    entity, 
-                    TokenValidationResponse.class
-                );
-            
-            return response.getBody();
-        } catch (Exception e) {
-            return TokenValidationResponse.invalid(e.getMessage());
-        }
-    }
-    
-    // Method 2: Using POST body
-    public TokenValidationResponse validateTokenPost(String token) {
-        Map<String, String> requestBody = Map.of(
-            "token", token,
-            "client_id", clientId,
-            "client_secret", clientSecret
-        );
-        
-        try {
-            ResponseEntity<TokenValidationResponse> response = 
-                restTemplate.postForEntity(
-                    authServiceUrl + "/sso/validate", 
-                    requestBody, 
-                    TokenValidationResponse.class
-                );
-            
-            return response.getBody();
-        } catch (Exception e) {
-            return TokenValidationResponse.invalid(e.getMessage());
-        }
-    }
-}`
-      },
-      {
-        language: 'go',
-        code: `// Using the provided Go SSO client
-package main
-
-import (
-    "github.com/seasia/auth-service/pkg/sso"
-)
-
-func main() {
-    // Create SSO client
-    client := sso.NewClient("http://localhost:8080")
-    
-    // Validate token
-    userInfo, err := client.ValidateToken(token)
-    if err != nil {
-        log.Printf("Token validation failed: %v", err)
-        return
-    }
-    
-    if userInfo.Valid {
-        log.Printf("User: %s, Roles: %v", userInfo.Username, userInfo.Roles)
-    }
-}`
-      },
-      {
-        language: 'python',
-        code: `import requests
-
-def validate_token(token, auth_service_url="http://localhost:8080"):
-    """Validate SSO token"""
-    headers = {'Authorization': f'Bearer {token}'}
-    
-    try:
-        response = requests.get(
-            f'{auth_service_url}/sso/validate',
-            headers=headers
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('valid', False)
-        return False
-    except requests.RequestException:
-        return False
-
-# Usage
-if validate_token(user_token):
-    print("Token is valid")
-else:
-    print("Token is invalid")`
-      }
-    ],
-    'middleware-integration': [
-      {
-        language: 'curl',
-        code: `# Testing Protected Endpoints with Dual Authentication
-
-# Step 1: Get user token
-TOKEN=$(curl -s -X POST http://localhost:8080/auth/token \\
-  -H "Content-Type: application/json" \\
-  -d '{"grant_type": "password", "username": "admin", "password": "Admin@123"}' \\
-  | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
-
-# Step 2: Call protected API endpoint with dual authentication
-curl -X GET http://localhost:8081/api/protected-resource \\
-  -H "Authorization: Bearer $TOKEN" \\
-  -H "X-Client-ID: your-service-client-id" \\
-  -H "X-Client-Secret: your-service-client-secret"
-
-# Step 3: Call endpoint requiring specific permissions
-curl -X POST http://localhost:8081/api/admin/action \\
-  -H "Authorization: Bearer $TOKEN" \\
-  -H "X-Client-ID: your-service-client-id" \\
-  -H "X-Client-Secret: your-service-client-secret" \\
-  -H "Content-Type: application/json" \\
-  -d '{"action": "delete_user", "user_id": "123"}'
-
-# Expected Response for Valid Request:
-# {
-#   "success": true,
-#   "message": "Action completed",
-#   "user": {
-#     "id": "user-id",
-#     "username": "admin",
-#     "service": "your-service-name"
-#   }
-# }
-
-# Expected Response for Invalid Service Credentials:
-# {
-#   "error": "service authentication failed",
-#   "status": 401
-# }`
-      },
-      {
-        language: 'go',
-        code: `// Gin Middleware Integration
-package main
-
-import (
-    "github.com/gin-gonic/gin"
-    "github.com/seasia/auth-service/pkg/sso"
-)
-
-func main() {
-    // Create SSO middleware
-    ssoMiddleware := sso.NewGinMiddleware("http://localhost:8080")
-    
-    r := gin.Default()
-    
-    // Protected endpoint requiring authentication
-    r.GET("/protected", ssoMiddleware.Authenticate(), protectedHandler)
-    
-    // Protected endpoint requiring specific permission
-    r.GET("/admin", 
-        ssoMiddleware.RequirePermission("admin", "read"), 
-        adminHandler)
-    
-    r.Run(":8081")
-}
-
-func protectedHandler(c *gin.Context) {
-    userInfo, ok := sso.GetUserInfoFromGin(c)
-    if !ok {
-        c.JSON(500, gin.H{"error": "No user info"})
-        return
-    }
-    
-    c.JSON(200, gin.H{
-        "message": "Hello " + userInfo.Username,
-        "roles":   userInfo.Roles,
-    })
-}`
-      },
-      {
-        language: 'java',
-        code: `// Spring Boot Filter Integration
-@Component
-public class SSOAuthenticationFilter extends OncePerRequestFilter {
-    
-    @Autowired
-    private SSOClient ssoClient;
-    
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, 
-                                    HttpServletResponse response, 
-                                    FilterChain filterChain) 
-            throws ServletException, IOException {
-        
-        String authHeader = request.getHeader("Authorization");
-        
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            
-            // Validate token with SSO service
-            TokenValidationResponse validation = ssoClient.validateToken(token);
-            
-            if (validation.isValid()) {
-                // Create Spring Security authentication
-                List<SimpleGrantedAuthority> authorities = 
-                    validation.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                        .collect(Collectors.toList());
-                
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(
-                        validation.getUsername(),
-                        null,
-                        authorities
-                    );
-                
-                SecurityContextHolder.getContext()
-                    .setAuthentication(authentication);
-            }
-        }
-        
-        filterChain.doFilter(request, response);
-    }
-}`
-      },
-      {
-        language: 'javascript',
-        code: `// Express.js Middleware
-const axios = require('axios');
-
-const ssoAuth = (authServiceUrl = 'http://localhost:8080') => {
-  return async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authorization header required' });
-    }
-    
-    const token = authHeader.substring(7);
+    setResponse(null);
     
     try {
-      const response = await axios.get(\`\${authServiceUrl}/sso/validate\`, {
-        headers: { 'Authorization': \`Bearer \${token}\` }
+      const baseUrl = 'http://localhost:8080';
+      let url = baseUrl + endpoint.path;
+      
+      // Replace path parameters
+      const pathParams = endpoint.parameters?.filter(p => p.in === 'path') || [];
+      pathParams.forEach(param => {
+        const value = requestParams[param.name];
+        if (value) {
+          url = url.replace(`{${param.name}}`, value);
+        }
       });
       
-      if (response.data.valid) {
-        // Add user info to request
-        req.user = {
-          id: response.data.user_id,
-          username: response.data.username,
-          email: response.data.email,
-          roles: response.data.roles,
-          permissions: response.data.permissions
-        };
-        next();
-      } else {
-        res.status(401).json({ error: 'Invalid token' });
-      }
-    } catch (error) {
-      res.status(500).json({ error: 'Token validation failed' });
-    }
-  };
-};
-
-// Usage
-const express = require('express');
-const app = express();
-
-// Protected routes
-app.get('/protected', ssoAuth(), (req, res) => {
-  res.json({
-    message: \`Hello \${req.user.username}!\`,
-    roles: req.user.roles
-  });
-});`
-      },
-      {
-        language: 'python',
-        code: `# Django Middleware
-import requests
-from django.http import JsonResponse
-from django.utils.deprecation import MiddlewareMixin
-
-class SSOAuthMiddleware(MiddlewareMixin):
-    def __init__(self, get_response):
-        self.get_response = get_response
-        self.auth_service_url = "http://localhost:8080"
-    
-    def process_request(self, request):
-        # Skip auth for certain paths
-        if request.path in ['/health', '/login']:
-            return None
-        
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return JsonResponse({'error': 'Authorization required'}, status=401)
-        
-        token = auth_header[7:]  # Remove 'Bearer ' prefix
-        
-        try:
-            response = requests.get(
-                f'{self.auth_service_url}/sso/validate',
-                headers={'Authorization': f'Bearer {token}'}
-            )
-            
-            if response.status_code == 200:
-                user_data = response.json()
-                if user_data.get('valid'):
-                    # Add user info to request
-                    request.sso_user = user_data
-                    return None
-            
-            return JsonResponse({'error': 'Invalid token'}, status=401)
-            
-        except requests.RequestException:
-            return JsonResponse({'error': 'Auth service unavailable'}, status=503)
-
-# Usage in views
-from django.http import JsonResponse
-
-def protected_view(request):
-    user_info = getattr(request, 'sso_user', None)
-    if user_info:
-        return JsonResponse({
-            'message': f'Hello {user_info["username"]}!',
-            'roles': user_info['roles']
-        })
-    return JsonResponse({'error': 'Unauthorized'}, status=401)`
-      },
-      {
-        language: 'react',
-        code: `// React Middleware/HOC for SSO Protection
-
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-
-// Higher-Order Component for SSO protection
-const withSSOProtection = (WrappedComponent, requiredPermissions = []) => {
-  return (props) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-      const validateUser = async () => {
-        const token = localStorage.getItem('authToken');
-        const clientId = process.env.REACT_APP_CLIENT_ID;
-        const clientSecret = process.env.REACT_APP_CLIENT_SECRET;
-
-        if (!token) {
-          setError('No authentication token found');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const response = await axios.get('http://localhost:8080/sso/validate', {
-            headers: {
-              'Authorization': \`Bearer \${token}\`,
-              'X-Client-ID': clientId,
-              'X-Client-Secret': clientSecret
-            }
-          });
-
-          if (response.data.valid) {
-            // Check permissions if required
-            const userPermissions = response.data.permissions || [];
-            const hasRequiredPermissions = requiredPermissions.every(perm => 
-              userPermissions.some(userPerm => 
-                userPerm.action === perm.action && userPerm.resource === perm.resource
-              )
-            );
-
-            if (requiredPermissions.length === 0 || hasRequiredPermissions) {
-              setUser(response.data);
-            } else {
-              setError('Insufficient permissions');
-            }
-          } else {
-            setError('Invalid token');
+      // Add query parameters
+      const queryParams = endpoint.parameters?.filter(p => p.in === 'query') || [];
+      const queryString = queryParams
+        .map(param => {
+          const value = requestParams[param.name];
+          if (value !== undefined && value !== '') {
+            return `${param.name}=${encodeURIComponent(value)}`;
           }
-        } catch (err) {
-          setError('Authentication failed');
-        } finally {
-          setLoading(false);
-        }
+          return null;
+        })
+        .filter(Boolean)
+        .join('&');
+      
+      if (queryString) {
+        url += '?' + queryString;
+      }
+      
+      // Build headers
+      const headers: any = {
+        'Content-Type': 'application/json',
       };
-
-      validateUser();
-    }, []);
-
-    if (loading) {
-      return <div className="loading">Authenticating...</div>;
-    }
-
-    if (error || !user) {
-      return (
-        <div className="auth-error">
-          <h3>Access Denied</h3>
-          <p>{error}</p>
-          <button onClick={() => window.location.href = '/login'}>
-            Login
-          </button>
-        </div>
-      );
-    }
-
-    return <WrappedComponent {...props} user={user} />;
-  };
-};
-
-// Usage example
-const ProtectedComponent = ({ user }) => (
-  <div>
-    <h2>Welcome, {user.username}!</h2>
-    <p>Service: {user.service_name}</p>
-    <p>Roles: {user.roles?.join(', ')}</p>
-  </div>
-);
-
-// Apply protection with permission requirements
-const AdminProtectedComponent = withSSOProtection(ProtectedComponent, [
-  { action: 'write', resource: 'admin' }
-]);
-
-// Apply basic protection (just authentication)
-const BasicProtectedComponent = withSSOProtection(ProtectedComponent);
-
-export default AdminProtectedComponent;`
-      }
-    ],
-    'frontend-integration': [
-      {
-        language: 'curl',
-        code: `# Frontend Authentication Flow with Enhanced Security
-
-# Step 1: Login for frontend application
-curl -X POST http://localhost:8080/sso/login \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "username": "admin",
-    "password": "Admin@123",
-    "service_id": "your-frontend-service-id",
-    "redirect_uri": "http://localhost:3000/dashboard"
-  }'
-
-# Expected Response:
-# {
-#   "success": true,
-#   "access_token": "eyJhbGciOiJIUzI1NiIs...",
-#   "redirect_uri": "http://localhost:3000/dashboard"
-# }
-
-# Step 2: Validate token on page load/refresh
-TOKEN="eyJhbGciOiJIUzI1NiIs..."  # Token from login response
-
-curl -X GET http://localhost:8080/sso/validate \\
-  -H "Authorization: Bearer $TOKEN" \\
-  -H "X-Client-ID: your-frontend-client-id" \\
-  -H "X-Client-Secret: your-frontend-client-secret"
-
-# Expected Response:
-# {
-#   "valid": true,
-#   "user_id": "user-id",
-#   "username": "admin",
-#   "email": "admin@example.com",
-#   "roles": ["super_admin"],
-#   "groups": ["administrators"],
-#   "permissions": [
-#     {"resource": "users", "action": "read"},
-#     {"resource": "users", "action": "write"}
-#   ],
-#   "service_id": "frontend-service-id",
-#   "service_name": "Frontend App",
-#   "expires_at": 1757938941
-# }
-
-# Step 3: Check specific permissions before showing UI elements
-curl -X POST http://localhost:8080/sso/check-permission \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "token": "'$TOKEN'",
-    "resource": "admin",
-    "action": "write",
-    "client_id": "your-frontend-client-id",
-    "client_secret": "your-frontend-client-secret"
-  }'
-
-# Expected Response:
-# {
-#   "allowed": true
-# }
-
-# Step 4: Logout
-curl -X POST http://localhost:8080/sso/logout \\
-  -H "Content-Type: application/json" \\
-  -d '{"token": "'$TOKEN'"}'
-
-# Expected Response:
-# {
-#   "success": true
-# }`
-      },
-      {
-        language: 'javascript',
-        code: `// React SSO Integration
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-const AuthContext = createContext(null);
-
-// SSO Service
-class SSOService {
-  constructor() {
-    this.baseURL = 'http://localhost:8080';
-    this.setupInterceptors();
-  }
-
-  setupInterceptors() {
-    // Add token and service credentials to all requests
-    axios.interceptors.request.use((config) => {
-      const token = localStorage.getItem('sso_token');
+      
+      // Add auth token if available
+      const token = getAuthToken();
       if (token) {
-        config.headers.Authorization = \`Bearer \${token}\`;
-        // Add service credentials for enhanced security
-        config.headers['X-Client-ID'] = process.env.REACT_APP_CLIENT_ID;
-        config.headers['X-Client-Secret'] = process.env.REACT_APP_CLIENT_SECRET;
+        headers['Authorization'] = `Bearer ${token}`;
       }
-      return config;
-    });
-
-    // Handle auth errors
-    axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        if (error.response?.status === 401) {
-          this.logout();
-          window.location.href = '/login';
+      
+      // Add header parameters
+      const headerParams = endpoint.parameters?.filter(p => p.in === 'header') || [];
+      headerParams.forEach(param => {
+        const value = requestParams[param.name];
+        if (value) {
+          headers[param.name] = value;
         }
-        return Promise.reject(error);
+      });
+      
+      // Build request options
+      const options: RequestInit = {
+        method: endpoint.method,
+        headers,
+      };
+      
+      // Add body for POST/PUT/PATCH requests
+      if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && requestBody) {
+        try {
+          options.body = requestBody;
+        } catch (e) {
+          options.body = requestBody;
+        }
       }
-    );
-  }
-
-  async login(username, password) {
-    const response = await axios.post(\`\${this.baseURL}/sso/login\`, {
-      username,
-      password,
-      service_id: process.env.REACT_APP_SERVICE_ID
-    });
-
-    if (response.data.success) {
-      localStorage.setItem('sso_token', response.data.access_token);
-      return response.data;
-    }
-    throw new Error('Login failed');
-  }
-
-  async validateToken() {
-    const token = localStorage.getItem('sso_token');
-    if (!token) return { valid: false };
-
-    // ENHANCED SECURITY: Dual Authentication Required
-    const response = await axios.get(\`\${this.baseURL}/sso/validate\`, {
-      headers: { 
-        Authorization: \`Bearer \${token}\`,
-        'X-Client-ID': process.env.REACT_APP_CLIENT_ID,
-        'X-Client-Secret': process.env.REACT_APP_CLIENT_SECRET
+      
+      const startTime = Date.now();
+      const res = await fetch(url, options);
+      const responseTime = Date.now() - startTime;
+      
+      let responseData;
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await res.json();
+      } else {
+        responseData = await res.text();
       }
-    });
-    
-    return response.data;
-  }
-
-  logout() {
-    localStorage.removeItem('sso_token');
-  }
-}
-
-// Auth Provider Component
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const ssoService = new SSOService();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const validation = await ssoService.validateToken();
-      if (validation.valid) {
-        setUser(validation);
-      }
-    } catch (err) {
-      console.error('Auth check failed:', err);
+      
+      setResponse({
+        status: res.status,
+        statusText: res.statusText,
+        data: responseData,
+        headers: Object.fromEntries(res.headers.entries()),
+        responseTime,
+      });
+    } catch (error: any) {
+      setResponse({
+        error: error.message || 'Request failed',
+        status: 0,
+      });
     } finally {
       setLoading(false);
     }
-  };
-
-  const login = async (username, password) => {
-    const result = await ssoService.login(username, password);
-    if (result.success) {
-      const userInfo = await ssoService.validateToken();
-      setUser(userInfo);
-    }
-    return result;
-  };
-
-  const logout = () => {
-    ssoService.logout();
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Custom hook
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};`
-      },
-      {
-        language: 'typescript',
-        code: `// Vue.js 3 Composition API Integration
-import { ref, reactive } from 'vue'
-import axios from 'axios'
-
-interface UserInfo {
-  valid: boolean
-  user_id: string
-  username: string
-  email: string
-  roles: string[]
-  permissions: Array<{resource: string, action: string}>
-}
-
-// Composable for SSO authentication
-export function useSSO() {
-  const user = ref<UserInfo | null>(null)
-  const loading = ref(false)
-  const authServiceUrl = 'http://localhost:8080'
-
-  // Setup axios interceptors
-  axios.interceptors.request.use((config) => {
-    const token = localStorage.getItem('sso_token')
-    if (token) {
-      config.headers.Authorization = \`Bearer \${token}\`
-    }
-    return config
-  })
-
-  axios.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      if (error.response?.status === 401) {
-        logout()
-        // Redirect to login
-      }
-      return Promise.reject(error)
-    }
-  )
-
-  const login = async (username: string, password: string) => {
-    loading.value = true
-    try {
-      const response = await axios.post(\`\${authServiceUrl}/sso/login\`, {
-        username,
-        password,
-        service_id: process.env.VUE_APP_SERVICE_ID
-      })
-
-      if (response.data.success) {
-        localStorage.setItem('sso_token', response.data.access_token)
-        await validateToken()
-        return { success: true }
-      }
-      throw new Error('Login failed')
-    } catch (error) {
-      return { success: false, error: error.message }
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const validateToken = async () => {
-    const token = localStorage.getItem('sso_token')
-    if (!token) return false
-
-    try {
-      const response = await axios.get(\`\${authServiceUrl}/sso/validate\`, {
-        headers: { Authorization: \`Bearer \${token}\` }
-      })
-
-      if (response.data.valid) {
-        user.value = response.data
-        return true
-      }
-    } catch (error) {
-      console.error('Token validation failed:', error)
-    }
-
-    user.value = null
-    return false
-  }
-
-  const logout = () => {
-    localStorage.removeItem('sso_token')
-    user.value = null
-  }
-
-  const hasPermission = (resource: string, action: string): boolean => {
-    return user.value?.permissions?.some(
-      p => p.resource === resource && p.action === action
-    ) || false
-  }
-
-  return {
-    user: readonly(user),
-    loading: readonly(loading),
-    login,
-    logout,
-    validateToken,
-    hasPermission,
-    isAuthenticated: computed(() => !!user.value)
-  }
-}`
-      }
-    ]
   };
 
   const apiSections: ApiSection[] = [
     {
-      title: "SSO (Single Sign-On) Endpoints",
-      description: "Public endpoints for external service integration with SSO",
+      title: "Authentication",
+      description: "Endpoints for user authentication and token management",
       endpoints: [
         {
           method: "POST",
-          path: "/sso/validate",
-          description: "Validate a JWT token and get user information",
-          requestExample: `{
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}`,
+          path: "/auth/login",
+          description: "Login with username and password",
+          requestBody: {
+            username: "admin",
+            password: "Admin@123"
+          },
           responseExample: `{
-  "valid": true,
-  "user_id": "uuid",
-  "username": "service_admin",
-  "email": "serviceadmin@example.com",
-  "roles": ["service_administrator"],
-  "groups": ["service_administrator"],
-  "permissions": [
-    {"resource": "services", "action": "read"},
-    {"resource": "services", "action": "write"}
-  ],
-  "expires_at": 1757938941
+  "code": "eyJhbGciOiJIUzI1NiIs...",
+  "password_status": {
+    "force_change": false,
+    "is_expired": false,
+    "is_expiring_soon": false,
+    "days_until_expiry": 90
+  }
 }`
         },
-        {
-          method: "GET",
-          path: "/sso/validate",
-          description: "Validate token from Authorization header",
-          parameters: [
-            { name: "Authorization", type: "header", description: "Bearer token in format: Bearer <token>", required: true }
-          ],
-          responseExample: `{
-  "valid": true,
-  "user_id": "uuid",
-  "username": "doc_admin",
-  "email": "docadmin@example.com",
-  "roles": ["document_administrator"],
-  "groups": ["document_administrators"],
-  "permissions": [
-    {"resource": "documents", "action": "read"},
-    {"resource": "documents", "action": "write"}
-  ],
-  "expires_at": 1757938941
-}`
-        },
-        {
-          method: "POST",
-          path: "/sso/check-permission",
-          description: "Check if a user has specific permission",
-          requestExample: `{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "resource": "documents",
-  "action": "read"
-}`,
-          responseExample: `{
-  "allowed": true
-}`
-        },
-        {
-          method: "POST",
-          path: "/sso/login",
-          description: "SSO login for external services",
-          requestExample: `{
-  "username": "doc_admin",
-  "password": "Admin@123",
-  "service_id": "22222222-2222-2222-2222-222222222222",
-  "redirect_uri": "http://localhost:3002/auth/callback"
-}`,
-          responseExample: `{
-  "success": true,
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "redirect_uri": "http://localhost:3002/auth/callback"
-}`
-        },
-        {
-          method: "POST",
-          path: "/sso/logout",
-          description: "Logout user from SSO",
-          requestExample: `{
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}`,
-          responseExample: `{
-  "success": true
-}`
-        }
-      ]
-    },
-    {
-      title: "Authentication Endpoints",
-      description: "Endpoints for JWT token generation and user authentication",
-      endpoints: [
         {
           method: "POST",
           path: "/auth/token",
-          description: "JWT token generation (password/refresh_token/client_credentials)",
-          requestExample: `{
-  "grant_type": "password",
-  "username": "admin",
-  "password": "Admin@123"
-}`,
+          description: "Generate JWT token (client_credentials or refresh_token)",
+          requestBody: {
+            grant_type: "client_credentials",
+            client_id: "your-client-id",
+            client_secret: "your-client-secret"
+          },
           responseExample: `{
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
   "token_type": "Bearer",
   "expires_in": 900
-}`,
-          parameters: [
-            { name: "grant_type", type: "string", description: "Grant type (password, refresh_token, client_credentials)", required: true },
-            { name: "username", type: "string", description: "Username (required for password grant)", required: false },
-            { name: "password", type: "string", description: "Password (required for password grant)", required: false }
-          ]
+}`
         },
         {
           method: "GET",
           path: "/me/permissions",
-          description: "Get current user's effective permissions",
+          description: "Get current user's permissions",
+          permission: "authenticated",
           responseExample: `{
   "effective_permissions": [
-    {
-      "resource": "users",
-      "action": "read"
-    }
+    {"resource": "users", "action": "read"},
+    {"resource": "users", "action": "write"}
   ],
   "groups": ["administrator"],
   "roles": ["administrator"]
@@ -1059,9 +197,10 @@ export function useSSO() {
           method: "GET",
           path: "/me/check-permission",
           description: "Check if user has specific permission",
+          permission: "authenticated",
           parameters: [
-            { name: "resource", type: "string", description: "Resource name", required: true },
-            { name: "action", type: "string", description: "Action name", required: true }
+            { name: "resource", type: "string", in: "query", description: "Resource name", required: true },
+            { name: "action", type: "string", in: "query", description: "Action name", required: true }
           ],
           responseExample: `{
   "has_permission": true
@@ -1078,150 +217,1331 @@ export function useSSO() {
 }`
         }
       ]
+    },
+    {
+      title: "SSO (Single Sign-On)",
+      description: "Public endpoints for external service integration with SSO",
+      endpoints: [
+        {
+          method: "POST",
+          path: "/sso/validate",
+          description: "Validate a JWT token and get user information",
+          requestBody: {
+            token: "eyJhbGciOiJIUzI1NiIs...",
+            client_id: "your-client-id",
+            client_secret: "your-client-secret"
+          },
+          responseExample: `{
+  "valid": true,
+  "user_id": "uuid",
+  "username": "admin",
+  "email": "admin@example.com",
+  "roles": ["administrator"],
+  "groups": ["administrators"],
+  "permissions": [
+    {"resource": "users", "action": "read"},
+    {"resource": "users", "action": "write"}
+  ],
+  "expires_at": 1757938941
+}`
+        },
+        {
+          method: "GET",
+          path: "/sso/validate",
+          description: "Validate token from Authorization header",
+          parameters: [
+            { name: "Authorization", type: "string", in: "header", description: "Bearer token", required: true },
+            { name: "X-Client-ID", type: "string", in: "header", description: "Client ID", required: true },
+            { name: "X-Client-Secret", type: "string", in: "header", description: "Client secret", required: true }
+          ],
+          responseExample: `{
+  "valid": true,
+  "user_id": "uuid",
+  "username": "admin",
+  "email": "admin@example.com",
+  "roles": ["administrator"],
+  "permissions": [...]
+}`
+        },
+        {
+          method: "POST",
+          path: "/sso/check-permission",
+          description: "Check if a user has specific permission",
+          requestBody: {
+            token: "eyJhbGciOiJIUzI1NiIs...",
+            resource: "documents",
+            action: "read",
+            client_id: "your-client-id",
+            client_secret: "your-client-secret"
+          },
+          responseExample: `{
+  "allowed": true
+}`
+        },
+        {
+          method: "POST",
+          path: "/sso/login",
+          description: "SSO login for external services",
+          requestBody: {
+            username: "admin",
+            password: "Admin@123",
+            service_id: "22222222-2222-2222-2222-222222222222",
+            redirect_uri: "http://localhost:3002/auth/callback"
+          },
+          responseExample: `{
+  "success": true,
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "redirect_uri": "http://localhost:3002/auth/callback"
+}`
+        },
+        {
+          method: "POST",
+          path: "/sso/logout",
+          description: "Logout user from SSO",
+          requestBody: {
+            token: "eyJhbGciOiJIUzI1NiIs..."
+          },
+          responseExample: `{
+  "success": true
+}`
+        }
+      ]
+    },
+    {
+      title: "User Management",
+      description: "CRUD operations for user management",
+      endpoints: [
+        {
+          method: "GET",
+          path: "/users",
+          description: "List all users with their roles",
+          permission: "read on users",
+          parameters: [
+            { name: "page", type: "number", in: "query", description: "Page number", required: false, default: 1 },
+            { name: "limit", type: "number", in: "query", description: "Items per page", required: false, default: 10 }
+          ],
+          responseExample: `{
+  "users": [
+    {
+      "id": "uuid",
+      "username": "user1",
+      "email": "user1@example.com",
+      "is_active": true,
+      "roles": ["user"],
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 100,
+  "page": 1,
+  "limit": 10
+}`
+        },
+        {
+          method: "POST",
+          path: "/users",
+          description: "Create new user",
+          permission: "write on users",
+          requestBody: {
+            username: "newuser",
+            email: "newuser@example.com",
+            password: "SecurePass@123",
+            roles: ["user"]
+          },
+          responseExample: `{
+  "id": "uuid",
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "is_active": true,
+  "roles": ["user"],
+  "created_at": "2024-01-01T00:00:00Z"
+}`
+        },
+        {
+          method: "GET",
+          path: "/users/{id}",
+          description: "Get specific user details",
+          permission: "read on users",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "User ID", required: true }
+          ],
+          responseExample: `{
+  "id": "uuid",
+  "username": "user1",
+  "email": "user1@example.com",
+  "is_active": true,
+  "roles": ["user"],
+  "created_at": "2024-01-01T00:00:00Z"
+}`
+        },
+        {
+          method: "PUT",
+          path: "/users/{id}",
+          description: "Update user information",
+          permission: "write on users",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "User ID", required: true }
+          ],
+          requestBody: {
+            username: "updateduser",
+            email: "updated@example.com",
+            is_active: true
+          },
+          responseExample: `{
+  "id": "uuid",
+  "username": "updateduser",
+  "email": "updated@example.com",
+  "is_active": true
+}`
+        },
+        {
+          method: "DELETE",
+          path: "/users/{id}",
+          description: "Delete user",
+          permission: "write on users",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "User ID", required: true }
+          ],
+          responseExample: `{
+  "message": "User deleted successfully"
+}`
+        },
+        {
+          method: "GET",
+          path: "/users/{id}/roles",
+          description: "Get user's assigned roles",
+          permission: "read on users",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "User ID", required: true }
+          ],
+          responseExample: `{
+  "roles": [
+    {
+      "id": "uuid",
+      "name": "administrator",
+      "description": "System administrator"
+    }
+  ]
+}`
+        },
+        {
+          method: "PUT",
+          path: "/users/{id}/roles",
+          description: "Assign/update user roles",
+          permission: "write on users",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "User ID", required: true }
+          ],
+          requestBody: {
+            role_ids: ["role-uuid-1", "role-uuid-2"]
+          },
+          responseExample: `{
+  "message": "Roles updated successfully",
+  "roles": ["administrator", "user"]
+}`
+        },
+        {
+          method: "GET",
+          path: "/users/export/csv",
+          description: "Export users to CSV",
+          permission: "read on users",
+          responseExample: `CSV file download`
+        },
+        {
+          method: "POST",
+          path: "/users/import/csv",
+          description: "Import users from CSV",
+          permission: "write on users",
+          requestBody: "multipart/form-data with CSV file",
+          responseExample: `{
+  "imported": 10,
+  "failed": 2,
+  "errors": [...]
+}`
+        }
+      ]
+    },
+    {
+      title: "Role Management",
+      description: "CRUD operations for role management",
+      endpoints: [
+        {
+          method: "GET",
+          path: "/roles",
+          description: "List all roles with permissions",
+          permission: "read on roles",
+          responseExample: `{
+  "roles": [
+    {
+      "id": "uuid",
+      "name": "administrator",
+      "description": "System administrator",
+      "groups": ["admin_group"]
+    }
+  ]
+}`
+        },
+        {
+          method: "POST",
+          path: "/roles",
+          description: "Create new role",
+          permission: "write on roles",
+          requestBody: {
+            name: "manager",
+            description: "Manager role",
+            group_ids: ["group-uuid"]
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "manager",
+  "description": "Manager role",
+  "groups": ["managers"]
+}`
+        },
+        {
+          method: "GET",
+          path: "/roles/{id}",
+          description: "Get specific role details",
+          permission: "read on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          responseExample: `{
+  "id": "uuid",
+  "name": "administrator",
+  "description": "System administrator",
+  "groups": ["admin_group"]
+}`
+        },
+        {
+          method: "PUT",
+          path: "/roles/{id}",
+          description: "Update role information",
+          permission: "write on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          requestBody: {
+            name: "updated_role",
+            description: "Updated description"
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "updated_role",
+  "description": "Updated description"
+}`
+        },
+        {
+          method: "DELETE",
+          path: "/roles/{id}",
+          description: "Delete role",
+          permission: "write on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          responseExample: `{
+  "message": "Role deleted successfully"
+}`
+        },
+        {
+          method: "GET",
+          path: "/roles/{id}/groups",
+          description: "Get role's assigned groups",
+          permission: "read on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          responseExample: `{
+  "groups": [
+    {
+      "id": "uuid",
+      "name": "admin_group",
+      "description": "Administrator group"
+    }
+  ]
+}`
+        },
+        {
+          method: "PUT",
+          path: "/roles/{id}/groups",
+          description: "Assign groups to role",
+          permission: "write on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          requestBody: {
+            group_ids: ["group-uuid-1", "group-uuid-2"]
+          },
+          responseExample: `{
+  "message": "Groups updated successfully"
+}`
+        },
+        {
+          method: "GET",
+          path: "/roles/{id}/effective-permissions",
+          description: "Get computed role permissions",
+          permission: "read on roles",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Role ID", required: true }
+          ],
+          responseExample: `{
+  "permissions": [
+    {"resource": "users", "action": "read"},
+    {"resource": "users", "action": "write"}
+  ]
+}`
+        }
+      ]
+    },
+    {
+      title: "Group Management",
+      description: "CRUD operations for group management",
+      endpoints: [
+        {
+          method: "GET",
+          path: "/groups",
+          description: "List all groups",
+          permission: "read on groups",
+          responseExample: `{
+  "groups": [
+    {
+      "id": "uuid",
+      "name": "administrators",
+      "description": "System administrators",
+      "services": ["auth-service", "document-service"]
+    }
+  ]
+}`
+        },
+        {
+          method: "POST",
+          path: "/groups",
+          description: "Create group",
+          permission: "write on groups",
+          requestBody: {
+            name: "developers",
+            description: "Development team",
+            service_ids: ["service-uuid"]
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "developers",
+  "description": "Development team"
+}`
+        },
+        {
+          method: "GET",
+          path: "/groups/{id}",
+          description: "Get group details",
+          permission: "read on groups",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Group ID", required: true }
+          ],
+          responseExample: `{
+  "id": "uuid",
+  "name": "administrators",
+  "description": "System administrators",
+  "services": ["auth-service"]
+}`
+        },
+        {
+          method: "PUT",
+          path: "/groups/{id}",
+          description: "Update group",
+          permission: "write on groups",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Group ID", required: true }
+          ],
+          requestBody: {
+            name: "updated_group",
+            description: "Updated description"
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "updated_group",
+  "description": "Updated description"
+}`
+        },
+        {
+          method: "DELETE",
+          path: "/groups/{id}",
+          description: "Delete group",
+          permission: "write on groups",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Group ID", required: true }
+          ],
+          responseExample: `{
+  "message": "Group deleted successfully"
+}`
+        },
+        {
+          method: "GET",
+          path: "/groups/{id}/services",
+          description: "Get group's services",
+          permission: "read on groups",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Group ID", required: true }
+          ],
+          responseExample: `{
+  "services": [
+    {
+      "id": "uuid",
+      "name": "auth-service",
+      "client_id": "auth-client-id"
+    }
+  ]
+}`
+        },
+        {
+          method: "PUT",
+          path: "/groups/{id}/services",
+          description: "Assign services to group",
+          permission: "write on groups",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Group ID", required: true }
+          ],
+          requestBody: {
+            service_ids: ["service-uuid-1", "service-uuid-2"]
+          },
+          responseExample: `{
+  "message": "Services updated successfully"
+}`
+        }
+      ]
+    },
+    {
+      title: "Service Management",
+      description: "CRUD operations for service management",
+      endpoints: [
+        {
+          method: "GET",
+          path: "/services",
+          description: "List all services",
+          permission: "read on services",
+          responseExample: `{
+  "services": [
+    {
+      "id": "uuid",
+      "name": "document-service",
+      "client_id": "doc-client-id",
+      "redirect_uri": "http://localhost:3002/callback"
+    }
+  ]
+}`
+        },
+        {
+          method: "POST",
+          path: "/services",
+          description: "Register service",
+          permission: "write on services",
+          requestBody: {
+            name: "new-service",
+            redirect_uri: "http://localhost:3003/callback",
+            allowed_origins: ["http://localhost:3003"]
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "new-service",
+  "client_id": "generated-client-id",
+  "client_secret": "generated-client-secret"
+}`
+        },
+        {
+          method: "GET",
+          path: "/services/{id}",
+          description: "Get service details",
+          permission: "read on services",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Service ID", required: true }
+          ],
+          responseExample: `{
+  "id": "uuid",
+  "name": "document-service",
+  "client_id": "doc-client-id",
+  "redirect_uri": "http://localhost:3002/callback"
+}`
+        },
+        {
+          method: "PUT",
+          path: "/services/{id}",
+          description: "Update service",
+          permission: "write on services",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Service ID", required: true }
+          ],
+          requestBody: {
+            name: "updated-service",
+            redirect_uri: "http://localhost:3003/new-callback"
+          },
+          responseExample: `{
+  "id": "uuid",
+  "name": "updated-service",
+  "redirect_uri": "http://localhost:3003/new-callback"
+}`
+        },
+        {
+          method: "DELETE",
+          path: "/services/{id}",
+          description: "Delete service",
+          permission: "write on services",
+          parameters: [
+            { name: "id", type: "string", in: "path", description: "Service ID", required: true }
+          ],
+          responseExample: `{
+  "message": "Service deleted successfully"
+}`
+        }
+      ]
     }
   ];
 
-  const languages = [
-    { value: 'curl', label: 'cURL' },
-    { value: 'javascript', label: 'JavaScript/Node.js' },
-    { value: 'react', label: 'React' },
-    { value: 'typescript', label: 'TypeScript/Vue.js' },
-    { value: 'java', label: 'Java/Spring Boot' },
-    { value: 'go', label: 'Go' },
-    { value: 'python', label: 'Python/Django' }
-  ];
-
-  const renderCodeExample = (exampleKey: string) => {
-    const examples = integrationExamples[exampleKey];
-    if (!examples) return null;
-
-    const selectedExample = examples.find(ex => ex.language === selectedLanguage) || examples[0];
-
+  const renderEndpointTester = (endpoint: ApiEndpoint, key: string) => {
+    const isActive = testingEndpoint === key;
+    
     return (
-      <div className="code-example">
-        <div className="language-selector" style={{ marginBottom: '10px' }}>
-          <select 
-            value={selectedLanguage} 
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            style={{ 
-              padding: '5px 10px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd',
-              fontSize: '14px'
-            }}
-          >
-            {languages.map(lang => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <pre style={{ 
-          background: '#f8f9fa', 
-          padding: '15px', 
-          borderRadius: '5px', 
-          overflow: 'auto',
-          fontSize: '13px',
-          lineHeight: '1.4'
-        }}>
-          <code>{selectedExample.code}</code>
-        </pre>
+      <div style={{ marginTop: '20px' }}>
+        <button
+          onClick={() => {
+            if (isActive) {
+              setTestingEndpoint(null);
+              setRequestParams({});
+              setRequestBody('');
+              setResponse(null);
+            } else {
+              setTestingEndpoint(key);
+              setRequestParams({});
+              setRequestBody(endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : '');
+              setResponse(null);
+            }
+          }}
+          style={{
+            background: isActive ? '#dc3545' : '#667eea',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          {isActive ? 'Close Tester' : 'Test Endpoint'}
+        </button>
+
+        {isActive && (
+          <div style={{ 
+            marginTop: '20px', 
+            padding: '20px', 
+            background: '#f8f9fa', 
+            borderRadius: '8px',
+            border: '1px solid #dee2e6'
+          }}>
+            <h4 style={{ marginTop: 0, color: '#495057' }}>API Endpoint Tester</h4>
+            
+            {/* Parameters */}
+            {endpoint.parameters && endpoint.parameters.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <h5 style={{ color: '#666' }}>Parameters:</h5>
+                {endpoint.parameters.map(param => (
+                  <div key={param.name} style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>
+                      {param.name} ({param.in})
+                      {param.required && <span style={{ color: '#dc3545' }}> *</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={requestParams[param.name] || ''}
+                      onChange={(e) => setRequestParams({
+                        ...requestParams,
+                        [param.name]: e.target.value
+                      })}
+                      placeholder={param.description}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ced4da',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Request Body */}
+            {['POST', 'PUT', 'PATCH'].includes(endpoint.method) && (
+              <div style={{ marginBottom: '20px' }}>
+                <h5 style={{ color: '#666' }}>Request Body:</h5>
+                <textarea
+                  value={requestBody}
+                  onChange={(e) => setRequestBody(e.target.value)}
+                  placeholder="Enter JSON request body"
+                  style={{
+                    width: '100%',
+                    height: '150px',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #ced4da',
+                    fontFamily: 'monospace',
+                    fontSize: '13px'
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Execute Button */}
+            <button
+              onClick={() => executeRequest(endpoint)}
+              disabled={loading}
+              style={{
+                background: loading ? '#6c757d' : '#28a745',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '5px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              {loading ? 'Sending...' : 'Send Request'}
+            </button>
+            
+            {/* Response */}
+            {response && (
+              <div style={{ marginTop: '20px' }}>
+                <h5 style={{ color: '#666' }}>Response:</h5>
+                
+                {/* Status */}
+                <div style={{ marginBottom: '10px' }}>
+                  <span style={{
+                    background: response.status >= 200 && response.status < 300 ? '#28a745' : 
+                               response.status >= 400 ? '#dc3545' : '#ffc107',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    marginRight: '10px'
+                  }}>
+                    {response.status} {response.statusText}
+                  </span>
+                  {response.responseTime && (
+                    <span style={{ color: '#6c757d', fontSize: '12px' }}>
+                      Response time: {response.responseTime}ms
+                    </span>
+                  )}
+                </div>
+                
+                {/* Response Headers */}
+                {response.headers && (
+                  <details style={{ marginBottom: '10px' }}>
+                    <summary style={{ cursor: 'pointer', color: '#666', fontSize: '14px' }}>
+                      Response Headers
+                    </summary>
+                    <pre style={{
+                      background: 'white',
+                      padding: '10px',
+                      borderRadius: '4px',
+                      overflow: 'auto',
+                      fontSize: '12px',
+                      marginTop: '5px'
+                    }}>
+                      {JSON.stringify(response.headers, null, 2)}
+                    </pre>
+                  </details>
+                )}
+                
+                {/* Response Body */}
+                <div>
+                  <div style={{ color: '#666', fontSize: '14px', marginBottom: '5px' }}>
+                    Response Body:
+                  </div>
+                  <pre style={{
+                    background: 'white',
+                    padding: '15px',
+                    borderRadius: '4px',
+                    overflow: 'auto',
+                    fontSize: '13px',
+                    maxHeight: '400px',
+                    border: '1px solid #dee2e6'
+                  }}>
+                    {response.error ? 
+                      `Error: ${response.error}` :
+                      typeof response.data === 'object' ? 
+                        JSON.stringify(response.data, null, 2) : 
+                        response.data
+                    }
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
 
   return (
     <div className="api-documentation">
-      <h1>API Documentation & Integration Guide</h1>
-      
+      <h1>API Documentation & Testing</h1>
+      <p style={{ color: '#6c757d', marginBottom: '30px' }}>
+        Interactive API documentation with live testing capabilities. Click "Test Endpoint" to try any API call.
+      </p>
+
       {/* SSO Integration Guide */}
-      <div className="api-section">
+      <div className="api-section" style={{ marginBottom: '25px' }}>
         <div 
           className="section-header" 
-          onClick={() => toggleSection('integration')}
-          style={{ cursor: 'pointer', padding: '15px', background: '#f8f9fa', borderRadius: '5px', marginBottom: '10px' }}
+          onClick={() => toggleSection('sso-setup-guide')}
+          style={{ 
+            cursor: 'pointer', 
+            padding: '15px', 
+            background: '#e8f4f8', 
+            borderRadius: '5px', 
+            marginBottom: '10px',
+            border: '2px solid #007bff'
+          }}
         >
-          <h2 style={{ margin: 0, color: '#495057' }}>
-            🔐 SSO Integration Guide {expandedSections['integration'] ? '▼' : '▶'}
+          <h2 style={{ margin: 0, color: '#007bff' }}>
+            {expandedSections['sso-setup-guide'] ? '▼' : '▶'} 🔐 SSO Integration Setup Guide
           </h2>
+          <p style={{ margin: '5px 0 0 0', color: '#495057', fontSize: '14px' }}>
+            Complete guide to integrate your service with our SSO Authentication & Authorization
+          </p>
         </div>
-        
-        {expandedSections['integration'] && (
-          <div style={{ marginBottom: '30px' }}>
-            <div style={{ padding: '20px', background: 'white', border: '1px solid #dee2e6', borderRadius: '8px' }}>
+
+        {expandedSections['sso-setup-guide'] && (
+          <div style={{ background: 'white', border: '2px solid #007bff', borderRadius: '8px', padding: '30px' }}>
+            
+            {/* Prerequisites */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', marginTop: 0, fontSize: '24px' }}>📋 Prerequisites</h3>
+              <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                <ul style={{ margin: 0, paddingLeft: '20px', lineHeight: '1.8' }}>
+                  <li><strong>Admin Access:</strong> You need admin credentials to register your service</li>
+                  <li><strong>Service Details:</strong> Prepare your service name, callback URL, and allowed origins</li>
+                  <li><strong>Development Environment:</strong> Ensure your service can make HTTP requests</li>
+                  <li><strong>HTTPS (Production):</strong> SSL/TLS certificate for production deployment</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Step 1: Service Registration */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>🚀 Step 1: Register Your Service</h3>
               
-              {/* Quick Start */}
-              <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#667eea', marginTop: 0 }}>🚀 Quick Start</h3>
-                <p>Integrate your application with our SSO service in minutes:</p>
-                <ol style={{ paddingLeft: '20px' }}>
-                  <li><strong>Register your service</strong> in the Services tab</li>
-                  <li><strong>Save the Client ID and Secret</strong> (shown only once)</li>
-                  <li><strong>Assign service to user groups</strong> for access control</li>
-                  <li><strong>Implement token validation</strong> using examples below</li>
+              <div style={{ background: '#e8f4f8', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                <h4 style={{ color: '#007bff', marginTop: 0 }}>Option A: Using the Web Interface (Recommended)</h4>
+                <ol style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
+                  <li>Login to this auth service with admin credentials</li>
+                  <li>Navigate to the <strong>"Service Management"</strong> tab</li>
+                  <li>Click <strong>"Add Service"</strong> button</li>
+                  <li>Fill in the service details:
+                    <ul style={{ marginTop: '10px' }}>
+                      <li><strong>Service Name:</strong> Your application name (e.g., "Document Management System")</li>
+                      <li><strong>Redirect URI:</strong> Your callback URL (e.g., "http://localhost:3002/auth/callback")</li>
+                      <li><strong>Allowed Origins:</strong> Your frontend domains (e.g., "http://localhost:3002")</li>
+                    </ul>
+                  </li>
+                  <li>Click <strong>"Create Service"</strong></li>
+                  <li><strong>⚠️ IMPORTANT:</strong> Copy and save the <code>Client ID</code> and <code>Client Secret</code> immediately - they're shown only once!</li>
                 </ol>
               </div>
 
-              {/* Service Details */}
+              <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                <h4 style={{ color: '#856404', marginTop: 0 }}>Option B: Using the API</h4>
+                <pre style={{ 
+                  background: '#f8f9fa', 
+                  padding: '15px', 
+                  borderRadius: '5px', 
+                  overflow: 'auto',
+                  fontSize: '13px',
+                  border: '1px solid #dee2e6'
+                }}>
+{`POST http://localhost:8080/services
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "My Service",
+  "redirect_uri": "http://localhost:3002/auth/callback",
+  "allowed_origins": ["http://localhost:3002"]
+}
+
+Response:
+{
+  "id": "service-uuid",
+  "name": "My Service",
+  "client_id": "generated-client-id",
+  "client_secret": "generated-client-secret"
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Step 2: Environment Setup */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>⚙️ Step 2: Configure Your Service</h3>
+              
+              <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                <h4 style={{ marginTop: 0 }}>Environment Variables</h4>
+                <p>Add these environment variables to your service:</p>
+                <pre style={{ 
+                  background: '#343a40', 
+                  color: '#fff',
+                  padding: '15px', 
+                  borderRadius: '5px', 
+                  overflow: 'auto',
+                  fontSize: '13px'
+                }}>
+{`# Auth Service Configuration
+AUTH_SERVICE_URL=http://localhost:8080
+SSO_CLIENT_ID=your-generated-client-id
+SSO_CLIENT_SECRET=your-generated-client-secret
+SERVICE_CALLBACK_URL=http://localhost:3002/auth/callback
+
+# Production
+# AUTH_SERVICE_URL=https://auth.yourcompany.com
+# SERVICE_CALLBACK_URL=https://yourservice.com/auth/callback`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Step 3: Implementation */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>💻 Step 3: Implement SSO in Your Service</h3>
+              
+              {/* Node.js/Express Implementation */}
               <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#667eea' }}>📋 Service Information</h3>
-                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
-                  <p><strong>SSO Base URL:</strong> <code>http://localhost:8080/sso</code></p>
-                  <p><strong>Document Service ID:</strong> <code>22222222-2222-2222-2222-222222222222</code></p>
-                  <p><strong>Test User:</strong> <code>doc_admin</code> / <code>Admin@123</code></p>
-                </div>
+                <h4 style={{ color: '#28a745' }}>Node.js/Express Implementation</h4>
+                <pre style={{ 
+                  background: '#f8f9fa', 
+                  padding: '15px', 
+                  borderRadius: '5px', 
+                  overflow: 'auto',
+                  fontSize: '13px',
+                  border: '1px solid #dee2e6'
+                }}>
+{`// 1. Install dependencies
+npm install axios express-session
+
+// 2. SSO Middleware
+const axios = require('axios');
+
+const ssoAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '') || 
+                req.session.ssoToken;
+  
+  if (!token) {
+    return res.redirect('/auth/login');
+  }
+
+  try {
+    const response = await axios.get(\`\${process.env.AUTH_SERVICE_URL}/sso/validate\`, {
+      headers: { 
+        'Authorization': \`Bearer \${token}\`,
+        'X-Client-ID': process.env.SSO_CLIENT_ID,
+        'X-Client-Secret': process.env.SSO_CLIENT_SECRET
+      }
+    });
+
+    if (response.data.valid) {
+      req.user = response.data;
+      next();
+    } else {
+      return res.redirect('/auth/login');
+    }
+  } catch (error) {
+    return res.redirect('/auth/login');
+  }
+};
+
+// 3. Login Route
+app.get('/auth/login', (req, res) => {
+  const authURL = \`\${process.env.AUTH_SERVICE_URL}/sso/login?\` +
+    \`service_id=\${process.env.SSO_CLIENT_ID}&\` +
+    \`redirect_uri=\${encodeURIComponent(process.env.SERVICE_CALLBACK_URL)}\`;
+  
+  res.redirect(authURL);
+});
+
+// 4. Callback Route
+app.get('/auth/callback', async (req, res) => {
+  const { token } = req.query;
+  
+  if (token) {
+    req.session.ssoToken = token;
+    res.redirect('/dashboard');
+  } else {
+    res.redirect('/auth/login?error=invalid_token');
+  }
+});
+
+// 5. Protected Routes
+app.get('/dashboard', ssoAuth, (req, res) => {
+  res.json({ 
+    message: \`Welcome \${req.user.username}!\`,
+    user: req.user 
+  });
+});
+
+// 6. Logout Route
+app.post('/auth/logout', async (req, res) => {
+  const token = req.session.ssoToken;
+  
+  if (token) {
+    await axios.post(\`\${process.env.AUTH_SERVICE_URL}/sso/logout\`, {
+      token: token
+    });
+    req.session.destroy();
+  }
+  
+  res.redirect('/login');
+});`}
+                </pre>
               </div>
 
-              {/* Token Validation */}
+              {/* React Frontend Implementation */}
               <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#667eea' }}>✅ Token Validation</h3>
-                <p>Validate user tokens to authenticate requests:</p>
-                {renderCodeExample('token-validation')}
+                <h4 style={{ color: '#61dafb' }}>React Frontend Implementation</h4>
+                <pre style={{ 
+                  background: '#f8f9fa', 
+                  padding: '15px', 
+                  borderRadius: '5px', 
+                  overflow: 'auto',
+                  fontSize: '13px',
+                  border: '1px solid #dee2e6'
+                }}>
+{`// 1. SSO Service
+class SSOService {
+  constructor() {
+    this.authServiceURL = process.env.REACT_APP_AUTH_SERVICE_URL;
+    this.clientId = process.env.REACT_APP_SSO_CLIENT_ID;
+    this.clientSecret = process.env.REACT_APP_SSO_CLIENT_SECRET;
+  }
+
+  // Redirect to SSO login
+  login() {
+    const redirectUri = \`\${window.location.origin}/auth/callback\`;
+    const authURL = \`\${this.authServiceURL}/sso/login?\` +
+      \`service_id=\${this.clientId}&\` +
+      \`redirect_uri=\${encodeURIComponent(redirectUri)}\`;
+    
+    window.location.href = authURL;
+  }
+
+  // Validate token
+  async validateToken(token) {
+    try {
+      const response = await fetch(\`\${this.authServiceURL}/sso/validate\`, {
+        headers: {
+          'Authorization': \`Bearer \${token}\`,
+          'X-Client-ID': this.clientId,
+          'X-Client-Secret': this.clientSecret
+        }
+      });
+      
+      return await response.json();
+    } catch (error) {
+      return { valid: false };
+    }
+  }
+
+  // Logout
+  async logout() {
+    const token = localStorage.getItem('sso_token');
+    if (token) {
+      await fetch(\`\${this.authServiceURL}/sso/logout\`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      localStorage.removeItem('sso_token');
+    }
+  }
+}
+
+// 2. Auth Context
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const ssoService = new SSOService();
+
+  useEffect(() => {
+    // Check for token in URL (callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      localStorage.setItem('sso_token', token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // Validate existing token
+    const storedToken = localStorage.getItem('sso_token');
+    if (storedToken) {
+      ssoService.validateToken(storedToken).then(result => {
+        if (result.valid) {
+          setUser(result);
+        } else {
+          localStorage.removeItem('sso_token');
+        }
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = () => ssoService.login();
+  const logout = () => {
+    ssoService.logout();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// 3. Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading, login } = useContext(AuthContext);
+
+  if (loading) return <div>Loading...</div>;
+  
+  if (!user) {
+    return (
+      <div>
+        <h2>Access Required</h2>
+        <button onClick={login}>Login with SSO</button>
+      </div>
+    );
+  }
+
+  return children;
+};`}
+                </pre>
               </div>
 
-              {/* Middleware Integration */}
+              {/* Java Spring Boot Implementation */}
               <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#667eea' }}>🔧 Backend Middleware Integration</h3>
-                <p>Protect your API endpoints with authentication middleware:</p>
-                {renderCodeExample('middleware-integration')}
+                <h4 style={{ color: '#f89820' }}>Java Spring Boot Implementation</h4>
+                <pre style={{ 
+                  background: '#f8f9fa', 
+                  padding: '15px', 
+                  borderRadius: '5px', 
+                  overflow: 'auto',
+                  fontSize: '13px',
+                  border: '1px solid #dee2e6'
+                }}>
+{`// 1. Configuration
+@Configuration
+public class SSOConfig {
+    @Value("\${sso.auth-service-url}")
+    private String authServiceUrl;
+    
+    @Value("\${sso.client-id}")
+    private String clientId;
+    
+    @Value("\${sso.client-secret}")
+    private String clientSecret;
+    
+    // Getters...
+}
+
+// 2. SSO Service
+@Service
+public class SSOService {
+    @Autowired
+    private SSOConfig ssoConfig;
+    
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    public TokenValidationResponse validateToken(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.set("X-Client-ID", ssoConfig.getClientId());
+        headers.set("X-Client-Secret", ssoConfig.getClientSecret());
+        
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        
+        try {
+            ResponseEntity<TokenValidationResponse> response = 
+                restTemplate.exchange(
+                    ssoConfig.getAuthServiceUrl() + "/sso/validate",
+                    HttpMethod.GET,
+                    entity,
+                    TokenValidationResponse.class
+                );
+            return response.getBody();
+        } catch (Exception e) {
+            return TokenValidationResponse.invalid();
+        }
+    }
+}
+
+// 3. Security Filter
+@Component
+public class SSOAuthenticationFilter extends OncePerRequestFilter {
+    @Autowired
+    private SSOService ssoService;
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                  HttpServletResponse response, 
+                                  FilterChain filterChain) throws ServletException, IOException {
+        
+        String token = extractToken(request);
+        
+        if (token != null) {
+            TokenValidationResponse validation = ssoService.validateToken(token);
+            
+            if (validation.isValid()) {
+                // Set authentication context
+                SecurityContextHolder.getContext()
+                    .setAuthentication(createAuthentication(validation));
+            }
+        }
+        
+        filterChain.doFilter(request, response);
+    }
+    
+    private String extractToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
+}
+
+// 4. Controller
+@RestController
+public class AuthController {
+    @Value("\${sso.auth-service-url}")
+    private String authServiceUrl;
+    
+    @Value("\${sso.client-id}")
+    private String clientId;
+    
+    @GetMapping("/auth/login")
+    public RedirectView login(@RequestParam(required = false) String returnUrl) {
+        String redirectUri = "http://localhost:8081/auth/callback";
+        String authURL = authServiceUrl + "/sso/login?" +
+            "service_id=" + clientId + "&" +
+            "redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
+        
+        return new RedirectView(authURL);
+    }
+    
+    @GetMapping("/auth/callback")
+    public RedirectView callback(@RequestParam String token, HttpServletRequest request) {
+        // Store token in session or JWT
+        HttpSession session = request.getSession();
+        session.setAttribute("sso_token", token);
+        
+        return new RedirectView("/dashboard");
+    }
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Step 4: User & Group Assignment */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>👥 Step 4: Assign Users & Groups</h3>
+              
+              <div style={{ background: '#e8f4f8', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                <h4 style={{ color: '#007bff', marginTop: 0 }}>Grant Access to Your Service</h4>
+                <ol style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
+                  <li><strong>Create Groups:</strong> Go to "Group Management" → Create groups for your service (e.g., "Document Admins", "Document Users")</li>
+                  <li><strong>Assign Service to Groups:</strong> Edit each group → Add your service to the "Assigned Services" list</li>
+                  <li><strong>Create Roles:</strong> Go to "Role Management" → Create roles and assign them to your groups</li>
+                  <li><strong>Assign Users:</strong> Go to "User Management" → Assign roles to users who need access</li>
+                </ol>
               </div>
 
-              {/* Frontend Integration */}
-              <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#667eea' }}>🌐 Frontend Integration</h3>
-                <p>Implement SSO authentication in your frontend applications:</p>
-                {renderCodeExample('frontend-integration')}
+              <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '8px', border: '1px solid #ffeaa7' }}>
+                <p style={{ margin: 0 }}><strong>💡 Tip:</strong> Users will only see your service in the dropdown if they have access through group assignments.</p>
               </div>
+            </div>
 
-              {/* Security Best Practices */}
+            {/* Testing & Troubleshooting */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>🔧 Testing & Troubleshooting</h3>
+              
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ color: '#667eea' }}>🛡️ Security Best Practices</h3>
-                <div style={{ background: '#fff3cd', padding: '15px', borderRadius: '8px', border: '1px solid #ffeaa7' }}>
-                  <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                    <li><strong>HTTPS Only:</strong> Always use HTTPS in production</li>
-                    <li><strong>Token Storage:</strong> Store tokens securely (httpOnly cookies recommended)</li>
-                    <li><strong>Token Validation:</strong> Validate tokens on every request</li>
-                    <li><strong>Permission Checks:</strong> Implement fine-grained permission checks</li>
-                    <li><strong>Token Expiry:</strong> Tokens expire after 15 minutes</li>
-                  </ul>
+                <h4 style={{ color: '#28a745' }}>Testing Your Integration</h4>
+                <ol style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
+                  <li><strong>Test Token Validation:</strong> Use the API tester above to test <code>/sso/validate</code> endpoint</li>
+                  <li><strong>Test Login Flow:</strong> Try logging in through your service</li>
+                  <li><strong>Test Permissions:</strong> Verify user permissions using <code>/sso/check-permission</code></li>
+                  <li><strong>Test Logout:</strong> Ensure logout works and clears sessions</li>
+                </ol>
+              </div>
+
+              <div style={{ background: '#f8d7da', padding: '20px', borderRadius: '8px', border: '1px solid #f5c6cb' }}>
+                <h4 style={{ color: '#721c24', marginTop: 0 }}>Common Issues & Solutions</h4>
+                <div style={{ lineHeight: '1.8' }}>
+                  <p><strong>Issue:</strong> "Service authentication failed"</p>
+                  <p><strong>Solution:</strong> Check your Client ID and Client Secret are correct</p>
+                  
+                  <p><strong>Issue:</strong> "User has no access to this service"</p>
+                  <p><strong>Solution:</strong> Ensure the user is assigned to a group that has access to your service</p>
+                  
+                  <p><strong>Issue:</strong> "Invalid token"</p>
+                  <p><strong>Solution:</strong> Token may be expired (15 min lifetime) or malformed</p>
+                  
+                  <p><strong>Issue:</strong> CORS errors</p>
+                  <p><strong>Solution:</strong> Ensure your domain is in the "Allowed Origins" for your service</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Security Best Practices */}
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: '#007bff', fontSize: '24px' }}>🛡️ Security Best Practices</h3>
+              
+              <div style={{ background: '#d4edda', padding: '20px', borderRadius: '8px', border: '1px solid #c3e6cb' }}>
+                <ul style={{ margin: 0, paddingLeft: '20px', lineHeight: '1.8' }}>
+                  <li><strong>Store Credentials Securely:</strong> Never hardcode Client ID/Secret in frontend code</li>
+                  <li><strong>Use HTTPS:</strong> Always use HTTPS in production for secure token transmission</li>
+                  <li><strong>Validate on Every Request:</strong> Always validate tokens on protected endpoints</li>
+                  <li><strong>Handle Token Expiry:</strong> Implement proper error handling for expired tokens</li>
+                  <li><strong>Secure Session Storage:</strong> Use secure, httpOnly cookies for token storage</li>
+                  <li><strong>Implement CSRF Protection:</strong> Add CSRF tokens for form submissions</li>
+                  <li><strong>Log Security Events:</strong> Log authentication attempts and failures</li>
+                </ul>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* API Endpoints */}
-      {apiSections.map((section, index) => (
-        <div key={index} className="api-section" style={{ marginBottom: '25px' }}>
+      
+      {/* API Sections */}
+      {apiSections.map((section, sectionIndex) => (
+        <div key={sectionIndex} className="api-section" style={{ marginBottom: '25px' }}>
           <div 
             className="section-header" 
             onClick={() => toggleSection(section.title)}
-            style={{ cursor: 'pointer', padding: '15px', background: '#f8f9fa', borderRadius: '5px', marginBottom: '10px' }}
+            style={{ 
+              cursor: 'pointer', 
+              padding: '15px', 
+              background: '#f8f9fa', 
+              borderRadius: '5px', 
+              marginBottom: '10px',
+              border: '1px solid #dee2e6'
+            }}
           >
             <h2 style={{ margin: 0, color: '#495057' }}>
-              {section.title} {expandedSections[section.title] ? '▼' : '▶'}
+              {expandedSections[section.title] ? '▼' : '▶'} {section.title}
             </h2>
             <p style={{ margin: '5px 0 0 0', color: '#6c757d', fontSize: '14px' }}>
               {section.description}
@@ -1230,108 +1550,154 @@ export function useSSO() {
 
           {expandedSections[section.title] && (
             <div style={{ background: 'white', border: '1px solid #dee2e6', borderRadius: '8px' }}>
-              {section.endpoints.map((endpoint, endpointIndex) => (
-                <div 
-                  key={endpointIndex} 
-                  style={{ 
-                    padding: '20px', 
-                    borderBottom: endpointIndex < section.endpoints.length - 1 ? '1px solid #eee' : 'none'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ 
-                      background: endpoint.method === 'GET' ? '#28a745' : endpoint.method === 'POST' ? '#007bff' : '#ffc107',
-                      color: 'white',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      marginRight: '10px'
-                    }}>
-                      {endpoint.method}
-                    </span>
-                    <code style={{ background: '#f8f9fa', padding: '4px 8px', borderRadius: '4px' }}>
-                      {endpoint.path}
-                    </code>
-                    {endpoint.permission && (
+              {section.endpoints.map((endpoint, endpointIndex) => {
+                const endpointKey = `${section.title}-${endpointIndex}`;
+                return (
+                  <div 
+                    key={endpointIndex} 
+                    style={{ 
+                      padding: '20px', 
+                      borderBottom: endpointIndex < section.endpoints.length - 1 ? '1px solid #eee' : 'none'
+                    }}
+                  >
+                    {/* Endpoint Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                       <span style={{ 
-                        background: '#6f42c1',
+                        background: endpoint.method === 'GET' ? '#28a745' : 
+                                   endpoint.method === 'POST' ? '#007bff' : 
+                                   endpoint.method === 'PUT' ? '#ffc107' :
+                                   endpoint.method === 'DELETE' ? '#dc3545' : '#6c757d',
                         color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        fontSize: '11px',
-                        marginLeft: '10px'
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        marginRight: '10px'
                       }}>
-                        Requires: {endpoint.permission}
+                        {endpoint.method}
                       </span>
-                    )}
-                  </div>
-                  
-                  <p style={{ margin: '0 0 15px 0', color: '#666' }}>
-                    {endpoint.description}
-                  </p>
-
-                  {endpoint.parameters && (
-                    <div style={{ marginBottom: '15px' }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>Parameters:</h4>
-                      <div style={{ background: '#f8f9fa', padding: '10px', borderRadius: '5px' }}>
-                        {endpoint.parameters.map((param, paramIndex) => (
-                          <div key={paramIndex} style={{ marginBottom: '8px' }}>
-                            <code style={{ marginRight: '8px' }}>{param.name}</code>
-                            <span style={{ 
-                              background: param.required ? '#dc3545' : '#6c757d',
-                              color: 'white',
-                              padding: '1px 4px',
-                              borderRadius: '3px',
-                              fontSize: '10px',
-                              marginRight: '8px'
-                            }}>
-                              {param.required ? 'Required' : 'Optional'}
-                            </span>
-                            <span style={{ color: '#666', fontSize: '13px' }}>
-                              {param.type} - {param.description}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                      <code style={{ 
+                        background: '#f8f9fa', 
+                        padding: '4px 8px', 
+                        borderRadius: '4px',
+                        marginRight: '10px'
+                      }}>
+                        {endpoint.path}
+                      </code>
+                      {endpoint.permission && (
+                        <span style={{ 
+                          background: '#6f42c1',
+                          color: 'white',
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          fontSize: '11px'
+                        }}>
+                          Requires: {endpoint.permission}
+                        </span>
+                      )}
                     </div>
-                  )}
+                    
+                    <p style={{ margin: '0 0 15px 0', color: '#666' }}>
+                      {endpoint.description}
+                    </p>
 
-                  <div style={{ display: 'flex', gap: '20px' }}>
-                    {endpoint.requestExample && (
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>Request:</h4>
-                        <pre style={{ 
-                          background: '#f8f9fa', 
-                          padding: '10px', 
-                          borderRadius: '5px', 
-                          overflow: 'auto',
-                          fontSize: '12px',
-                          margin: 0
+                    {/* Parameters Table */}
+                    {endpoint.parameters && endpoint.parameters.length > 0 && (
+                      <div style={{ marginBottom: '15px' }}>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>
+                          Parameters:
+                        </h4>
+                        <table style={{ 
+                          width: '100%', 
+                          borderCollapse: 'collapse',
+                          fontSize: '13px'
                         }}>
-                          <code>{endpoint.requestExample}</code>
-                        </pre>
+                          <thead>
+                            <tr style={{ background: '#f8f9fa' }}>
+                              <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Name</th>
+                              <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Type</th>
+                              <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>In</th>
+                              <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Description</th>
+                              <th style={{ padding: '8px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Required</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {endpoint.parameters.map((param, paramIndex) => (
+                              <tr key={paramIndex}>
+                                <td style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
+                                  <code>{param.name}</code>
+                                </td>
+                                <td style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>{param.type}</td>
+                                <td style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>{param.in}</td>
+                                <td style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>{param.description}</td>
+                                <td style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
+                                  <span style={{ 
+                                    background: param.required ? '#dc3545' : '#6c757d',
+                                    color: 'white',
+                                    padding: '2px 6px',
+                                    borderRadius: '3px',
+                                    fontSize: '11px'
+                                  }}>
+                                    {param.required ? 'Yes' : 'No'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     )}
 
-                    {endpoint.responseExample && (
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>Response:</h4>
-                        <pre style={{ 
-                          background: '#f8f9fa', 
-                          padding: '10px', 
-                          borderRadius: '5px', 
-                          overflow: 'auto',
-                          fontSize: '12px',
-                          margin: 0
-                        }}>
-                          <code>{endpoint.responseExample}</code>
-                        </pre>
-                      </div>
-                    )}
+                    {/* Request/Response Examples */}
+                    <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
+                      {endpoint.requestBody && (
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>
+                            Request Body:
+                          </h4>
+                          <pre style={{ 
+                            background: '#f8f9fa', 
+                            padding: '10px', 
+                            borderRadius: '5px', 
+                            overflow: 'auto',
+                            fontSize: '12px',
+                            margin: 0,
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <code>
+                              {typeof endpoint.requestBody === 'object' ? 
+                                JSON.stringify(endpoint.requestBody, null, 2) : 
+                                endpoint.requestBody}
+                            </code>
+                          </pre>
+                        </div>
+                      )}
+
+                      {endpoint.responseExample && (
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#333' }}>
+                            Response Example:
+                          </h4>
+                          <pre style={{ 
+                            background: '#f8f9fa', 
+                            padding: '10px', 
+                            borderRadius: '5px', 
+                            overflow: 'auto',
+                            fontSize: '12px',
+                            margin: 0,
+                            border: '1px solid #dee2e6'
+                          }}>
+                            <code>{endpoint.responseExample}</code>
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Endpoint Tester */}
+                    {renderEndpointTester(endpoint, endpointKey)}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

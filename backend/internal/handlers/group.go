@@ -10,12 +10,14 @@ import (
 )
 
 type GroupHandler struct {
-	groupService *services.GroupService
+	groupService      *services.GroupService
+	validationService *services.ValidationService
 }
 
-func NewGroupHandler(groupService *services.GroupService) *GroupHandler {
+func NewGroupHandler(groupService *services.GroupService, validationService *services.ValidationService) *GroupHandler {
 	return &GroupHandler{
-		groupService: groupService,
+		groupService:      groupService,
+		validationService: validationService,
 	}
 }
 
@@ -42,6 +44,11 @@ func (h *GroupHandler) CreateGroup(c *gin.Context) {
 	var req CreateGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validationService.ValidateGroupName(req.Name, nil); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
 		return
 	}
 
@@ -105,7 +112,11 @@ func (h *GroupHandler) UpdateGroup(c *gin.Context) {
 		return
 	}
 
-	if req.Name != "" {
+	if req.Name != "" && req.Name != group.Name {
+		if err := h.validationService.ValidateGroupName(req.Name, &groupID); err != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
+			return
+		}
 		group.Name = req.Name
 	}
 	if req.Description != "" {

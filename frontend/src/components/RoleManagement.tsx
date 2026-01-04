@@ -5,6 +5,7 @@ import { RequirePermission, usePermissions } from '../contexts/PermissionContext
 import './UserManagement.css';
 import './shared.css';
 import ConfirmationModal from './ConfirmationModal';
+import { validateName } from '../utils/validation';
 
 interface Role {
   id: string;
@@ -145,6 +146,7 @@ const RoleManagement: React.FC = () => {
   const [viewingRole, setViewingRole] = useState<Role | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -281,6 +283,7 @@ const RoleManagement: React.FC = () => {
     setFormData({ name: '', description: '' });
     setSelectedGroups([]);
     setWizardStep(1);
+    setFieldErrors({});
   };
 
   const handleCloseGroupModal = () => {
@@ -300,8 +303,10 @@ const RoleManagement: React.FC = () => {
   };
 
   const handleNextStep = () => {
-    if (!formData.name.trim()) {
-      showNotification('Please enter a role name', 'error');
+    setFieldErrors({});
+    const nameValidation = validateName(formData.name, 'Role name');
+    if (!nameValidation.isValid) {
+      setFieldErrors({ name: nameValidation.errors.join('; ') });
       return;
     }
     setWizardStep(2);
@@ -309,6 +314,29 @@ const RoleManagement: React.FC = () => {
 
   const handlePreviousStep = () => {
     setWizardStep(1);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'name' && value) {
+      const validation = validateName(value, 'Role name');
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, name: validation.errors.join('; ') }));
+      }
+    }
   };
 
   const handleGroupSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -324,9 +352,11 @@ const RoleManagement: React.FC = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      showNotification('Please enter a role name', 'error');
+    setFieldErrors({});
+
+    const nameValidation = validateName(formData.name, 'Role name');
+    if (!nameValidation.isValid) {
+      setFieldErrors({ name: nameValidation.errors.join('; ') });
       return;
     }
 
@@ -338,22 +368,19 @@ const RoleManagement: React.FC = () => {
       };
 
       let roleId: string;
-      
+
       if (editingRole) {
-        // Update existing role
         await axios.put(`http://localhost:8080/roles/${editingRole.id}`, roleData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         roleId = editingRole.id;
         showNotification('Role updated successfully', 'success');
       } else {
-        // Create new role
         const response = await axios.post('http://localhost:8080/roles', roleData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         roleId = response.data.id;
-        
-        // If we have groups selected, assign them
+
         if (selectedGroups.length > 0) {
           await axios.put(`http://localhost:8080/roles/${roleId}/groups`, {
             group_ids: selectedGroups
@@ -367,8 +394,13 @@ const RoleManagement: React.FC = () => {
       await fetchRoles();
       handleCloseModal();
     } catch (error: any) {
-      console.error('Error saving role:', error);
-      showNotification(error.response?.data?.error || 'Error saving role', 'error');
+      const errorMsg = error.response?.data?.error || 'Error saving role';
+      const field = error.response?.data?.field;
+      if (field) {
+        setFieldErrors({ [field]: errorMsg });
+      } else {
+        showNotification(errorMsg, 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -423,22 +455,21 @@ const RoleManagement: React.FC = () => {
       )}
 
       {/* Desktop Table View */}
-      <div className="users-table-container">
-        <table className="users-table">
+      <div className="roles-table-container">
+        <table className="roles-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Description</th>
               <th>Permissions</th>
               <th>Groups</th>
-              <th>Created</th>
               {hasAnyRolePermission && <th>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {roles.length === 0 ? (
               <tr>
-                <td colSpan={hasAnyRolePermission ? 6 : 5} className="no-users">
+                <td colSpan={hasAnyRolePermission ? 5 : 4} className="no-users">
                   No roles found. {canWriteRoles ? 'Create your first role to get started.' : ''}
                 </td>
               </tr>
@@ -453,22 +484,23 @@ const RoleManagement: React.FC = () => {
                   </td>
                   <td data-label="Permissions">
                     <RequirePermission action="read" resource="roles">
-                      <button
-                        className="permission-count-btn"
-                        onClick={() => handleViewPermissions(role)}
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleViewPermissions(role);
+                        }}
+                        style={{ color: '#667eea', textDecoration: 'none', fontWeight: 500 }}
                         title={`${role.permissions ? role.permissions.length : 0} direct permissions`}
                       >
                         {role.permissions ? role.permissions.length : 0} permissions
-                      </button>
+                      </a>
                     </RequirePermission>
                   </td>
                   <td data-label="Groups">
                     <span className="count-badge">
                       {role.groups ? role.groups.length : 0} group(s)
                     </span>
-                  </td>
-                  <td data-label="Created">
-                    {new Date(role.created_at).toLocaleDateString()}
                   </td>
                   {hasAnyRolePermission && (
                     <td data-label="Actions" className="actions">
@@ -567,28 +599,32 @@ const RoleManagement: React.FC = () => {
               </div>
             )}
 
-            <form className="user-form" onSubmit={handleSubmit}>
+            <form className="user-form" onSubmit={handleSubmit} noValidate>
               {/* Step 1: Basic Details */}
               {wizardStep === 1 && (
                 <>
-                  <div className="form-group">
+                  <div className={`form-group ${fieldErrors.name ? 'has-error' : ''}`}>
                     <label>Role Name *</label>
                     <input
                       type="text"
+                      name="name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
+                      onChange={handleInputChange}
+                      onBlur={handleBlur}
                       disabled={submitting}
                       placeholder="e.g., API Manager"
+                      className={fieldErrors.name ? 'input-error' : ''}
                     />
+                    {fieldErrors.name && <span className="field-error">{fieldErrors.name}</span>}
                   </div>
 
                   <div className="form-group">
                     <label>Description</label>
                     <input
                       type="text"
+                      name="description"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={handleInputChange}
                       disabled={submitting}
                       placeholder="Brief description of the role"
                     />

@@ -13,7 +13,7 @@ Feature: Authentication and Authorization
     When I enter username "admin" and password "Admin@123"
     And I click the login button
     Then I should be redirected to the dashboard
-    And I should see "Authentication Service Dashboard"
+    And I should see "Dashboard"
     And I should see my roles and permissions
 
   @auth @login

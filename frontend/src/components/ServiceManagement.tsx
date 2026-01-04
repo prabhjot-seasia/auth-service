@@ -5,6 +5,7 @@ import { RequirePermission } from '../contexts/PermissionContext';
 import './UserManagement.css';
 import './shared.css';
 import ConfirmationModal from './ConfirmationModal';
+import { validateName } from '../utils/validation';
 
 interface Service {
   id: string;
@@ -126,6 +127,7 @@ const ServiceManagement: React.FC = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
   const [newServiceSecret, setNewServiceSecret] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -190,6 +192,7 @@ const ServiceManagement: React.FC = () => {
     });
     setEditingService(null);
     setNewServiceSecret(null);
+    setFieldErrors({});
   };
 
   const handleCreate = () => {
@@ -294,13 +297,46 @@ const ServiceManagement: React.FC = () => {
     });
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'name' && value) {
+      const validation = validateName(value, 'Service name');
+      if (!validation.isValid) {
+        setFieldErrors(prev => ({ ...prev, name: validation.errors.join('; ') }));
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+
+    const nameValidation = validateName(formData.name, 'Service name');
+    if (!nameValidation.isValid) {
+      setFieldErrors({ name: nameValidation.errors.join('; ') });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       if (editingService) {
-        // Update existing service
         await axios.put(`http://localhost:8080/services/${editingService.id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -308,21 +344,23 @@ const ServiceManagement: React.FC = () => {
         setShowModal(false);
         resetForm();
       } else {
-        // Create new service
         const response = await axios.post('http://localhost:8080/services', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        // Show the client secret for the new service
+
         setNewServiceSecret(response.data.client_secret);
         showNotification('Service created successfully. Please save the client secret!', 'success');
       }
 
       fetchServices();
     } catch (error: any) {
-      console.error('Error saving service:', error);
-      const errorMessage = error.response?.data?.error || 'Error saving service';
-      showNotification(errorMessage, 'error');
+      const errorMsg = error.response?.data?.error || 'Error saving service';
+      const field = error.response?.data?.field;
+      if (field) {
+        setFieldErrors({ [field]: errorMsg });
+      } else {
+        showNotification(errorMsg, 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -374,26 +412,24 @@ const ServiceManagement: React.FC = () => {
 
 
       {/* Desktop Table View */}
-      <div className="users-table-container">
-        <table className="users-table">
+      <div className="services-table-container">
+        <table className="services-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Client ID</th>
-              <th>Redirect URI</th>
               <th>Scopes</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {!Array.isArray(services) || services.length === 0 ? (
               <tr>
-                <td colSpan={6} className="no-users">No services found</td>
+                <td colSpan={4} className="no-users">No services found</td>
               </tr>
             ) : (
               services.map((service) => (
-                <tr key={service.id}>
+                <tr key={service.id} className={`service-row ${service.is_active ? 'active-service' : 'inactive-service'}`}>
                   <td>
                     <a 
                       href="#" 
@@ -411,14 +447,18 @@ const ServiceManagement: React.FC = () => {
                       {service.client_id}
                     </code>
                   </td>
-                  <td>{service.redirect_uri || '-'}</td>
-                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {service.scopes || '-'}
-                  </td>
-                  <td>
-                    <span className={`status ${service.is_active ? 'active' : 'inactive'}`}>
-                      {service.is_active ? 'Active' : 'Suspended'}
-                    </span>
+                  <td style={{ lineHeight: '1.4' }}>
+                    {service.scopes ? 
+                      service.scopes.split(' ').map((scope, index) => (
+                        <div key={index} style={{ 
+                          padding: '2px 0',
+                          fontSize: '12px',
+                          color: '#495057'
+                        }}>
+                          {scope}
+                        </div>
+                      )) : '-'
+                    }
                   </td>
                   <td className="actions">
                     <div className="action-buttons">
@@ -494,25 +534,29 @@ const ServiceManagement: React.FC = () => {
               <h3>{editingService ? 'Edit Service' : 'Create Service'}</h3>
               <button className="close-btn" onClick={handleCloseModal}>×</button>
             </div>
-            <form className="user-form" onSubmit={handleSubmit}>
-              <div className="form-group">
+            <form className="user-form" onSubmit={handleSubmit} noValidate>
+              <div className={`form-group ${fieldErrors.name ? 'has-error' : ''}`}>
                 <label>Service Name *</label>
                 <input
                   type="text"
+                  name="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
                   disabled={submitting}
                   placeholder="e.g., Document Service"
+                  className={fieldErrors.name ? 'input-error' : ''}
                 />
+                {fieldErrors.name && <span className="field-error">{fieldErrors.name}</span>}
               </div>
 
               <div className="form-group">
                 <label>Redirect URI</label>
                 <input
                   type="text"
+                  name="redirect_uri"
                   value={formData.redirect_uri}
-                  onChange={(e) => setFormData({ ...formData, redirect_uri: e.target.value })}
+                  onChange={handleInputChange}
                   disabled={submitting}
                   placeholder="https://example.com/callback"
                 />
@@ -523,8 +567,9 @@ const ServiceManagement: React.FC = () => {
                 <label>Scopes</label>
                 <input
                   type="text"
+                  name="scopes"
                   value={formData.scopes}
-                  onChange={(e) => setFormData({ ...formData, scopes: e.target.value })}
+                  onChange={handleInputChange}
                   disabled={submitting}
                   placeholder="read:users write:users read:admin"
                 />
@@ -539,9 +584,10 @@ const ServiceManagement: React.FC = () => {
                   <label htmlFor="is_active" className="toggle-switch">
                     <input
                       id="is_active"
+                      name="is_active"
                       type="checkbox"
                       checked={formData.is_active}
-                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                      onChange={handleInputChange}
                       disabled={submitting}
                     />
                     <span className="toggle-slider"></span>

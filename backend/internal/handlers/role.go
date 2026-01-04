@@ -10,12 +10,14 @@ import (
 )
 
 type RoleHandler struct {
-	roleService *services.RoleService
+	roleService       *services.RoleService
+	validationService *services.ValidationService
 }
 
-func NewRoleHandler(roleService *services.RoleService) *RoleHandler {
+func NewRoleHandler(roleService *services.RoleService, validationService *services.ValidationService) *RoleHandler {
 	return &RoleHandler{
-		roleService: roleService,
+		roleService:       roleService,
+		validationService: validationService,
 	}
 }
 
@@ -39,6 +41,11 @@ func (h *RoleHandler) CreateRole(c *gin.Context) {
 	var req CreateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validationService.ValidateRoleName(req.Name, nil); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
 		return
 	}
 
@@ -102,7 +109,11 @@ func (h *RoleHandler) UpdateRole(c *gin.Context) {
 		return
 	}
 
-	if req.Name != "" {
+	if req.Name != "" && req.Name != role.Name {
+		if err := h.validationService.ValidateRoleName(req.Name, &roleID); err != nil {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
+			return
+		}
 		role.Name = req.Name
 	}
 	if req.Description != "" {

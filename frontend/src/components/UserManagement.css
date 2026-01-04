@@ -1,5 +1,9 @@
 .user-management {
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  box-sizing: border-box;
 }
 
 .user-management-header {
@@ -144,29 +148,80 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative; /* Ensure proper containment */
+  box-sizing: border-box;
 }
 
 .users-table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* Fixed layout for consistent column widths */
+  min-width: 400px; /* Further reduced for 3-column layout */
 }
 
 .users-table th {
   background: #f8f9fa;
-  padding: 1rem;
+  padding: 0.75rem 0.5rem; /* Reduced padding */
   text-align: left;
   border-bottom: 2px solid #dee2e6;
   color: #495057;
   font-weight: 600;
+  font-size: 14px;
 }
 
 .users-table td {
-  padding: 1rem;
+  padding: 0.5rem; /* Significantly reduced padding */
   border-bottom: 1px solid #dee2e6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  white-space: normal;
+  max-width: 0; /* Force cells to respect width constraints */
+  vertical-align: middle; /* Center align content */
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+/* Fixed column widths for 3-column layout */
+.users-table th:nth-child(1),
+.users-table td:nth-child(1) {
+  width: 50%; /* Username - expanded for tooltip */
+}
+
+.users-table th:nth-child(2),
+.users-table td:nth-child(2) {
+  width: 30%; /* Role - adjusted */
+}
+
+.users-table th:nth-child(3),
+.users-table td:nth-child(3) {
+  width: 20%; /* Actions - adjusted for icon buttons */
+  min-width: 100px; /* Adjusted for 30px buttons */
+  white-space: nowrap; /* Prevent action buttons from wrapping */
+  overflow: visible; /* Allow buttons to be fully visible */
+  padding: 0.5rem 0.25rem; /* Adjusted padding for actions */
+}
+
+/* Row color indication for user status */
+.users-table tr.active-user {
+  background: #f8fff8; /* Light green background for active users */
+  border-left: 4px solid #28a745; /* Green left border */
+}
+
+.users-table tr.inactive-user {
+  background: #fff8f8; /* Light red background for inactive users */
+  border-left: 4px solid #dc3545; /* Red left border */
+  opacity: 0.7; /* Slightly faded */
 }
 
 .users-table tr:hover {
-  background: #f8f9fa;
+  background: #e3f2fd !important; /* Blue hover for better visibility */
+  opacity: 1 !important; /* Full opacity on hover */
 }
 
 .status {
@@ -189,11 +244,474 @@
 
 .actions {
   white-space: nowrap;
+  padding: 0.5rem 0.25rem;
 }
 
 .actions button {
   font-size: 12px;
-  margin-right: 0.5rem;
+  padding: 0.25rem;
+  margin-right: 0.25rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+/* Icon-only button styles */
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.btn-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-edit {
+  background: #28a745;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #218838;
+}
+
+.btn-activate {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-activate:hover {
+  background: #138496;
+}
+
+.btn-deactivate {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-deactivate:hover {
+  background: #e0a800;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+/* ========== ROLE MANAGEMENT TABLE (6 columns) ========== */
+.roles-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.roles-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 800px;
+}
+
+.roles-table th {
+  background: #f8f9fa;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.roles-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 0;
+  vertical-align: middle;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+}
+
+/* Fixed column widths for 5-column role layout */
+.roles-table th:nth-child(1),
+.roles-table td:nth-child(1) { 
+  width: 20%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Name */
+.roles-table th:nth-child(2),
+.roles-table td:nth-child(2) { 
+  width: 35%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Description */
+.roles-table th:nth-child(3),
+.roles-table td:nth-child(3) { 
+  width: 15%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Permissions */
+.roles-table th:nth-child(4),
+.roles-table td:nth-child(4) { 
+  width: 15%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Groups */
+.roles-table th:nth-child(5),
+.roles-table td:nth-child(5) { 
+  width: 15%; 
+  min-width: 100px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  padding: 0.5rem 0.25rem;
+} /* Actions */
+
+/* Role table action buttons */
+.roles-table .action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.roles-table .btn-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.roles-table .btn-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ========== GROUP MANAGEMENT TABLE (5 columns) ========== */
+.groups-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.groups-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 700px;
+}
+
+.groups-table th {
+  background: #f8f9fa;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.groups-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 0;
+  vertical-align: middle;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+}
+
+/* Fixed column widths for 4-column group layout */
+.groups-table th:nth-child(1),
+.groups-table td:nth-child(1) { 
+  width: 25%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Name */
+.groups-table th:nth-child(2),
+.groups-table td:nth-child(2) { 
+  width: 40%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Description */
+.groups-table th:nth-child(3),
+.groups-table td:nth-child(3) { 
+  width: 20%; 
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: break-word;
+} /* Services */
+.groups-table th:nth-child(4),
+.groups-table td:nth-child(4) { 
+  width: 15%; 
+  min-width: 100px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  padding: 0.5rem 0.25rem;
+} /* Actions */
+
+/* Group table action buttons */
+.groups-table .action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.groups-table .btn-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.groups-table .btn-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ========== SERVICE MANAGEMENT TABLE (5 columns) ========== */
+.services-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.services-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 600px;
+}
+
+.services-table th {
+  background: #f8f9fa;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.services-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 0;
+  vertical-align: middle;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+/* Fixed column widths for 4-column service layout (Redirect URI removed) */
+.services-table th:nth-child(1),
+.services-table td:nth-child(1) { width: 35%; } /* Name */
+.services-table th:nth-child(2),
+.services-table td:nth-child(2) { width: 30%; } /* Client ID */
+.services-table th:nth-child(3),
+.services-table td:nth-child(3) { width: 20%; } /* Scopes */
+.services-table th:nth-child(4),
+.services-table td:nth-child(4) { 
+  width: 15%; 
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: visible;
+  padding: 0.5rem 0.25rem;
+} /* Actions */
+
+/* Row color indication for service status */
+.services-table tr.active-service {
+  background: #f8fff8; /* Light green background for active services */
+  border-left: 4px solid #28a745; /* Green left border */
+}
+
+.services-table tr.inactive-service {
+  background: #fff8f8; /* Light red background for inactive services */
+  border-left: 4px solid #dc3545; /* Red left border */
+  opacity: 0.7; /* Slightly faded */
+}
+
+.services-table tr:hover {
+  background: #e3f2fd !important; /* Blue hover for better visibility */
+  opacity: 1 !important; /* Full opacity on hover */
+}
+
+/* Service table action buttons */
+.services-table .action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.services-table .btn-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.services-table .btn-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Username tooltip styles */
+.username-cell {
+  position: relative;
+  cursor: help;
+}
+
+.username-cell:hover .user-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.user-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background-color: #333;
+  color: white;
+  text-align: left;
+  border-radius: 6px;
+  padding: 12px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: opacity 0.3s, visibility 0.3s;
+  font-size: 12px;
+  max-width: 300px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.user-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.tooltip-row {
+  margin-bottom: 4px;
+}
+
+.tooltip-row:last-child {
+  margin-bottom: 0;
+}
+
+.tooltip-label {
+  font-weight: bold;
+  color: #ffc107;
 }
 
 /* Modal Styles */
@@ -628,7 +1146,7 @@
 .action-buttons {
   display: flex;
   gap: 0.5rem;
-  justify-content: center;
+  justify-content: flex-start;
   white-space: nowrap;
 }
 
@@ -861,6 +1379,20 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Simple pagination info for infinite scroll */
+.pagination-info-simple {
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pagination-info-simple .info-text {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
 .no-users {
   text-align: center;
   color: #6c757d;
@@ -1071,11 +1603,17 @@ label.btn-secondary {
   margin: 0 0 0.25rem 0;
   color: #495057;
   font-size: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .group-description {
   color: #6c757d;
   font-size: 0.875rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .inherited-permission {
@@ -1112,6 +1650,9 @@ label.btn-secondary {
 .info-item {
   font-size: 0.9rem;
   color: #495057;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .info-item strong {
@@ -1139,20 +1680,39 @@ label.btn-secondary {
 }
 
 .actions {
-  text-align: center;
+  text-align: left;
   padding: 0.5rem !important;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .users-table {
-    min-width: 700px;
+    min-width: 350px; /* Reduced for 3-column layout */
   }
   
-  .users-table th:last-child,
-  .users-table td:last-child {
-    width: 100px;
-    min-width: 100px;
+  /* Adjust column widths for medium screens - 3 columns */
+  .users-table th:nth-child(1),
+  .users-table td:nth-child(1) {
+    width: 45%; /* Username - larger */
+  }
+  
+  .users-table th:nth-child(2),
+  .users-table td:nth-child(2) {
+    width: 30%; /* Role */
+  }
+  
+  .users-table th:nth-child(3),
+  .users-table td:nth-child(3) {
+    width: 25%; /* Actions */
+    min-width: 120px;
   }
 }
 
@@ -1203,7 +1763,7 @@ label.btn-secondary {
   }
 
   .users-table {
-    min-width: 600px;
+    min-width: 350px; /* Reduced for 3-column layout */
   }
 
   .users-table th:last-child,
@@ -1258,9 +1818,20 @@ label.btn-secondary {
     font-size: 14px;
   }
 
-  .users-table th:last-child,
-  .users-table td:last-child {
-    width: 80px;
+  /* Compact column widths for very small screens - 3 columns */
+  .users-table th:nth-child(1),
+  .users-table td:nth-child(1) {
+    width: 45%; /* Username */
+  }
+  
+  .users-table th:nth-child(2),
+  .users-table td:nth-child(2) {
+    width: 35%; /* Role */
+  }
+  
+  .users-table th:nth-child(3),
+  .users-table td:nth-child(3) {
+    width: 20%; /* Actions */
     min-width: 80px;
   }
 
@@ -1268,6 +1839,10 @@ label.btn-secondary {
     min-width: 24px;
     height: 24px;
     font-size: 11px;
+  }
+  
+  .action-buttons {
+    gap: 0.1rem;
   }
 }
 
@@ -1495,14 +2070,17 @@ label.btn-secondary {
   display: none;
 }
 
-/* Mobile styles (576px and below) - Show cards, hide table */
-@media (max-width: 576px) {
-  .users-table-container {
+/* Mobile and tablet styles (768px and below) - Show cards, hide table */
+@media (max-width: 768px) {
+  .users-table-container,
+  .roles-table-container,
+  .groups-table-container,
+  .services-table-container {
     display: none !important;
   }
 
   .users-cards {
-    display: block;
+    display: block !important;
   }
 
   /* Sticky search bar for mobile */
@@ -1742,7 +2320,7 @@ label.btn-secondary {
     font-style: italic;
   }
 
-  /* Hide Desktop Pagination on Mobile */
+  /* No desktop-only pagination needed with infinite scroll */
   .desktop-only {
     display: none;
   }
@@ -1961,4 +2539,29 @@ label.btn-secondary {
     width: 16px;
     height: 16px;
   }
+}
+
+/* Field-specific error styles */
+.form-group.has-error input,
+.form-group.has-error select,
+.input-error {
+  border-color: #dc3545 !important;
+  background-color: #fff8f8;
+}
+
+.form-group.has-error input:focus,
+.form-group.has-error select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.field-error {
+  display: block;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.form-group.has-error label {
+  color: #dc3545;
 }

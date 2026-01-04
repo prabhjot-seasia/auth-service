@@ -16,6 +16,7 @@ interface Service {
   client_id: string;
   scopes: string;
   is_active: boolean;
+  redirect_uri?: string;
 }
 
 export const Dashboard: React.FC = () => {
@@ -25,6 +26,7 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [services, setServices] = useState<Service[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Only fetch services if user has permission to read services
@@ -56,6 +58,26 @@ export const Dashboard: React.FC = () => {
   const handleTabSelect = (tab: string) => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab is selected
+  };
+
+  const getUserAllowedServices = () => {
+    if (!services || services.length === 0) return [];
+    if (!effectivePermissions) return [];
+    
+    // Filter services based on user's permissions and active status
+    return services.filter(service => {
+      // Only show active services
+      if (!service.is_active) return false;
+      
+      // Check if user has any permission that matches the service's scopes
+      const scopes = service.scopes.split(' ');
+      return scopes.some(scope => {
+        const [resource, action] = scope.split(':');
+        return effectivePermissions.some((perm: any) => 
+          perm.resource === resource && perm.action === action
+        );
+      });
+    });
   };
 
   const groupPermissionsByService = () => {
@@ -112,7 +134,114 @@ export const Dashboard: React.FC = () => {
           <img src={seasiaLogo} alt="Seasia" className="dashboard-logo" />
           <h1>Dashboard</h1>
         </div>
-        <button onClick={logout} className="logout-btn">Logout</button>
+        <div className="user-dropdown-container">
+          <button 
+            className="user-dropdown-toggle" 
+            onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+            aria-expanded={isUserDropdownOpen}
+          >
+            <span className="user-avatar">
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
+            </span>
+            <span className="user-name">{user?.username || 'User'}</span>
+            <svg 
+              className={`dropdown-arrow ${isUserDropdownOpen ? 'open' : ''}`} 
+              width="12" 
+              height="12" 
+              viewBox="0 0 12 12"
+            >
+              <path d="M2.5 4.5L6 8 9.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          
+          {isUserDropdownOpen && (
+            <>
+              <div className="dropdown-overlay" onClick={() => setIsUserDropdownOpen(false)} />
+              <div className="user-dropdown-menu">
+                <div className="dropdown-user-info">
+                  <div className="dropdown-user-header">
+                    <div className="dropdown-user-avatar">
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className="dropdown-user-details">
+                      <div className="dropdown-username">{user?.username}</div>
+                      <div className="dropdown-email">{user?.email || 'No email'}</div>
+                    </div>
+                  </div>
+                  
+                  {user?.roles && user.roles.length > 0 && (
+                    <div className="dropdown-roles">
+                      <span className="dropdown-label">Roles:</span>
+                      <div className="dropdown-role-badges">
+                        {user.roles.map((role: string) => (
+                          <span key={role} className="role-badge">{role}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {getUserAllowedServices().length > 0 && (
+                  <>
+                    <div className="dropdown-divider" />
+                    <div className="dropdown-services">
+                      <div className="dropdown-section-title">Services</div>
+                      {getUserAllowedServices().map(service => {
+                        // If service has a redirect_uri, make it clickable with SSO
+                        if (service.redirect_uri) {
+                          // Build simplified SSO authorize URL with token
+                          const ssoUrl = new URL('http://localhost:8080/sso/login');
+                          ssoUrl.searchParams.append('client_id', service.client_id);
+                          ssoUrl.searchParams.append('redirect_uri', service.redirect_uri);
+                          ssoUrl.searchParams.append('response_type', 'code');
+                          ssoUrl.searchParams.append('scope', service.scopes || 'openid');
+                          
+                          // Get JWT token from localStorage and add it to the URL
+                          const token = localStorage.getItem('jwt');
+                          if (token) {
+                            ssoUrl.searchParams.append('token', token);
+                          }
+                          
+                          return (
+                            <a 
+                              key={service.id}
+                              href={ssoUrl.toString()}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="dropdown-service-link"
+                              onClick={() => setIsUserDropdownOpen(false)}
+                            >
+                              <span className="service-icon">⚡</span>
+                              <span className="service-name">{service.name}</span>
+                              <span className="service-external-icon">↗</span>
+                            </a>
+                          );
+                        }
+                        // If no redirect_uri, show as disabled
+                        return (
+                          <div 
+                            key={service.id}
+                            className="dropdown-service-link disabled"
+                            title="No URL configured for this service"
+                          >
+                            <span className="service-icon">⚡</span>
+                            <span className="service-name">{service.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+                
+                <div className="dropdown-divider" />
+                <button className="dropdown-logout" onClick={() => { logout(); setIsUserDropdownOpen(false); }}>
+                  <span className="logout-icon">⚪</span>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="dashboard-content">
@@ -137,7 +266,7 @@ export const Dashboard: React.FC = () => {
               className={activeTab === 'user-management' ? 'active' : ''}
               onClick={() => handleTabSelect('user-management')}
             >
-              User Management
+              Users
             </button>
           </RequirePermission>
 

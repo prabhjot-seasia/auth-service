@@ -13,12 +13,14 @@ import (
 )
 
 type ServiceHandler struct {
-	userService *services.UserService
+	userService       *services.UserService
+	validationService *services.ValidationService
 }
 
-func NewServiceHandler(userService *services.UserService) *ServiceHandler {
+func NewServiceHandler(userService *services.UserService, validationService *services.ValidationService) *ServiceHandler {
 	return &ServiceHandler{
-		userService: userService,
+		userService:       userService,
+		validationService: validationService,
 	}
 }
 
@@ -65,6 +67,11 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 	var req CreateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validationService.ValidateServiceName(req.Name, nil); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
 		return
 	}
 
@@ -163,12 +170,6 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 		return
 	}
 
-	var req UpdateServiceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	// Get existing service
 	service, err := h.userService.GetServiceByID(serviceID)
 	if err != nil {
@@ -176,18 +177,37 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 		return
 	}
 
-	// Update fields if provided
-	if req.Name != "" {
-		service.Name = req.Name
+	// Parse request body as raw JSON to check which fields were actually provided
+	var rawRequest map[string]interface{}
+	if err := c.ShouldBindJSON(&rawRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	if req.RedirectURI != "" || req.RedirectURI == "" { // Allow empty string to clear
-		service.RedirectURI = req.RedirectURI
+
+	// Update fields ONLY if explicitly provided in the request
+	if name, exists := rawRequest["name"]; exists {
+		if nameStr, ok := name.(string); ok && nameStr != "" && nameStr != service.Name {
+			if err := h.validationService.ValidateServiceName(nameStr, &serviceID); err != nil {
+				c.JSON(http.StatusConflict, gin.H{"error": err.Error(), "field": "name"})
+				return
+			}
+			service.Name = nameStr
+		}
 	}
-	if req.Scopes != "" || req.Scopes == "" { // Allow empty string to clear
-		service.Scopes = req.Scopes
+	if redirectURI, exists := rawRequest["redirect_uri"]; exists {
+		if redirectURIStr, ok := redirectURI.(string); ok {
+			service.RedirectURI = redirectURIStr
+		}
 	}
-	if req.IsActive != nil {
-		service.IsActive = *req.IsActive
+	if scopes, exists := rawRequest["scopes"]; exists {
+		if scopesStr, ok := scopes.(string); ok {
+			service.Scopes = scopesStr
+		}
+	}
+	if isActive, exists := rawRequest["is_active"]; exists {
+		if isActiveBool, ok := isActive.(bool); ok {
+			service.IsActive = isActiveBool
+		}
 	}
 
 	// Update service in database

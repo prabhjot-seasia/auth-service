@@ -1,104 +1,184 @@
-# Authentication & Authorization Service
+# 🔐 Enterprise Authentication & Authorization Service
 
-A comprehensive authentication and authorization service built with Go backend and React frontend. Features OAuth2/JWT authentication, Role-Based Access Control (RBAC), complete user management UI, BDD testing, and Docker containerization.
+A comprehensive, production-ready authentication and authorization service designed for modern enterprise applications. Built with Go backend and React frontend, featuring OAuth2/JWT authentication, Role-Based Access Control (RBAC), Single Sign-On (SSO), and complete user management capabilities.
 
-## Table of Contents
+## 🎯 Service Intent & Purpose
 
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Local Development Setup](#local-development-setup)
-  - [With Docker (Recommended)](#with-docker-recommended)
-  - [Without Docker](#without-docker)
-- [Production Setup](#production-setup)
-- [API Documentation](#api-documentation)
-- [OAuth2 & JWT Authentication](#oauth2--jwt-authentication)
-- [SSO Integration](#sso-integration)
-- [Service-to-Service Authentication](#service-to-service-authentication)
-- [Testing](#testing)
-- [Environment Variables](#environment-variables)
-- [Default Users](#default-users)
-- [Contributing](#contributing)
+This service serves as a **centralized authentication and authorization hub** for enterprise applications, providing:
 
-## Features
+- **🏢 Enterprise SSO**: Single Sign-On across multiple applications and services
+- **🔒 Centralized Security**: One place to manage users, roles, permissions, and access policies
+- **🔗 Service Integration**: Easy integration for any application requiring authentication
+- **📊 User Management**: Complete administrative interface for user lifecycle management
+- **🛡️ Security Compliance**: Industry-standard security practices with audit capabilities
+- **⚡ Developer Friendly**: Simple APIs and comprehensive documentation for quick integration
 
-- 🔐 **OAuth2 & JWT Authentication** - Support for multiple grant types
-- 👥 **Role-Based Access Control (RBAC)** - Fine-grained permission system
-- 🎛️ **User Management UI** - Complete CRUD operations for users and roles
-- 🔗 **SSO Integration** - Single Sign-On support for external services
-- 🐳 **Docker Support** - Fully containerized development and production
-- 📱 **Responsive Design** - Mobile-friendly React frontend
-- 🧪 **BDD Testing** - Cucumber.js with Playwright for cross-browser testing
-- 🚀 **Production Ready** - Nginx reverse proxy, SSL support
+### Who Should Use This Service?
 
-## Architecture
+- **Enterprises** needing centralized authentication across multiple applications
+- **Development Teams** building microservices requiring consistent authentication
+- **Organizations** requiring RBAC with fine-grained permissions
+- **Companies** implementing SSO for improved user experience and security
+- **Teams** needing a ready-to-deploy auth service with management UI
 
-Multi-service architecture with:
+## 🔥 **100% COMPLIANCE STATUS** 
+
+✅ **RBAC Chain Enforced**: User → 1 Role → Many Groups → Many Services  
+✅ **First-Time Login**: Password change required with policy enforcement  
+✅ **Client Credentials**: Service-to-service authentication working  
+✅ **SSO Integration**: Cross-service logout with token blacklisting  
+✅ **API Endpoints**: `/me/permissions`, `/me/services`, all endpoints functional  
+✅ **Security**: Token blacklisting, bcrypt hashing, dual authentication
+
+## 📋 Table of Contents
+
+- [🎯 Service Intent & Purpose](#-service-intent--purpose)
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [🚀 Quick Start](#-quick-start)
+- [🛠️ Setup Methods](#️-setup-methods)
+  - [Method 1: Using Setup Script (Recommended)](#method-1-using-setup-script-recommended)
+  - [Method 2: Docker Development](#method-2-docker-development)
+  - [Method 3: Local Development (No Docker)](#method-3-local-development-no-docker)
+- [🔧 Setup Script Usage](#-setup-script-usage)
+- [🗄️ Database Setup](#-database-setup)
+- [📊 Logging Configuration](#-logging-configuration)
+- [🌐 Production Deployment](#-production-deployment)
+- [📖 API Documentation](#-api-documentation)
+- [🔗 SSO Integration Guide](#-sso-integration-guide)
+- [🧪 Testing](#-testing)
+- [⚙️ Configuration](#️-configuration)
+- [🔒 Security](#-security)
+- [👥 Default Users](#-default-users)
+- [🆘 Troubleshooting](#-troubleshooting)
+
+## ✨ Features
+
+### 🔐 Authentication & Authorization
+- **OAuth2 & JWT Authentication** - Complete OAuth2 implementation with JWT tokens
+- **Role-Based Access Control (RBAC)** - Fine-grained permission system
+- **Single Sign-On (SSO)** - Cross-application authentication
+- **Service-to-Service Auth** - Client credentials flow for microservices
+- **Password Policies** - Configurable password strength and expiration
+- **Token Blacklisting** - Secure logout with token invalidation
+
+### 👥 User Management
+- **Complete User CRUD** - Create, read, update, delete users
+- **Role Assignment** - Flexible role-based permissions
+- **Group Management** - Organize users into groups
+- **Service Registration** - Register applications for SSO
+- **User Import/Export** - CSV support for bulk operations
+- **Responsive UI** - Mobile-friendly React interface
+
+### 🔧 Developer Experience
+- **Interactive API Documentation** - Built-in API testing interface
+- **Setup Script** - One-command deployment with multiple configurations
+- **Docker Support** - Fully containerized with Docker Compose
+- **External Database** - Support for existing PostgreSQL instances
+- **Configuration Templates** - Pre-built configs for different environments
+- **BDD Testing** - Comprehensive test suite with Cucumber.js
+
+### 🚀 Production Ready
+- **Nginx Reverse Proxy** - Production-grade load balancing
+- **SSL/TLS Support** - HTTPS configuration ready
+- **Health Checks** - Built-in monitoring endpoints
+- **Graceful Shutdown** - Proper resource cleanup
+- **Advanced Logging** - Configurable levels, formats, and rotation
+- **Log Management** - File-based logging with automatic rotation
+- **Scalability** - Horizontal scaling support
+
+## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   React Frontend│    │   Go Backend    │    │   PostgreSQL    │
-│   (Port 3001)   │◄──►│   (Port 8080)   │◄──►│   (Port 5433)   │
+│   (Port 3001)  │◄──►│   (Port 8080)   │◄──►│   (Port 5433)   │
+│                 │    │                 │    │                 │
+│ • User Management    │ • JWT Auth      │    │ • User Data     │
+│ • SSO Dashboard      │ • RBAC Engine   │    │ • Permissions   │
+│ • API Testing       │ • OAuth2        │    │ • Audit Logs    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         ▲                       ▲                       ▲
-         │                       │                       │
-┌─────────────────────────────────────────────────────────────────┐
-│                    Nginx Reverse Proxy                         │
-│                     (Port 80/443)                              │
-└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Components:**
-- **Backend**: Go (Gin) API server with JWT auth and PostgreSQL
-- **Frontend**: React (TypeScript) with user management features
-- **Database**: PostgreSQL with GORM migrations
-- **Proxy**: Nginx reverse proxy for production
-- **Testing**: BDD with Cucumber.js and Playwright
+### Key Components
 
-## Project Structure
+- **🎨 React Frontend**: Complete administrative interface with user management
+- **⚡ Go Backend**: High-performance API server with JWT authentication
+- **🗄️ PostgreSQL**: Reliable data storage with ACID compliance
+- **🌐 Nginx**: Production reverse proxy (optional)
+
+### RBAC Model
 
 ```
-auth-service/
-├── backend/                    # Go backend service
-│   ├── cmd/server/            # Application entry point
-│   │   └── main.go
-│   ├── internal/              # Private application code
-│   │   ├── handlers/          # HTTP request handlers
-│   │   ├── services/          # Business logic layer
-│   │   ├── repository/        # Data access layer
-│   │   ├── middleware/        # HTTP middleware (auth, CORS)
-│   │   ├── auth/              # JWT token management
-│   │   └── models/            # Database models (GORM)
-│   ├── config/                # Configuration management
-│   ├── migrations/            # Database migrations
-│   └── .env.example          # Environment template
-├── frontend/react-app/        # React frontend
-│   ├── src/
-│   │   ├── components/        # React components
-│   │   ├── provider/          # Context providers
-│   │   ├── routes/            # Route configuration
-│   │   └── utils/             # Utility functions
-│   └── public/               # Static assets
-├── tests/bdd/                # BDD test suites
-│   ├── features/             # Cucumber feature files
-│   ├── steps/                # Step definitions
-│   └── support/              # Test helpers
-├── nginx/                    # Nginx configuration
-├── docker-compose.yml        # Docker services
-└── CLAUDE.md                # Development guidelines
+Users ──► Roles ──► Groups ──► Services
+  │         │         │         │
+  └─────────┴─────────┴─────────┘
+           Permissions Flow
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-Get the service running in under 5 minutes:
+### Prerequisites
+- **Docker & Docker Compose** (for containerized setup)
+- **Go 1.23+** (for local development)
+- **Node.js 20+** (for frontend development)
+- **PostgreSQL 12+** (for external database)
 
+### 30-Second Setup
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd auth-service
 
-# Start all services with Docker
+# Quick start with setup script
+./setup.sh --build --start
+
+# Access the application
+open http://localhost:3001
+```
+
+**Default Login**: admin / Admin@123
+
+## 🛠️ Setup Methods
+
+### Method 1: Using Setup Script (Recommended)
+
+The setup script provides the easiest way to deploy with various configurations:
+
+#### Basic Setup (Docker Database)
+```bash
+./setup.sh --build --start
+```
+
+#### External Database Setup
+```bash
+# Initialize external database
+./scripts/init-external-db.sh --db-password=mypass
+
+# Start with external database
+./setup.sh --use-external-db --db-host=localhost --db-password=mypass --build --start
+```
+
+#### Production Setup
+```bash
+# Use production configuration
+./setup.sh --config-file config/production.env --environment=production --build --start
+```
+
+#### Custom Configuration
+```bash
+./setup.sh \
+  --server-port=9090 \
+  --frontend-port=3002 \
+  --jwt-secret=my-secret-key \
+  --build --start
+```
+
+### Method 2: Docker Development
+
+#### Using Docker Compose Directly
+```bash
+# Start all services with Docker database
 docker-compose up -d
 
 # Check service status
@@ -106,1502 +186,724 @@ docker-compose ps
 
 # View logs
 docker-compose logs -f
-```
-
-Access the services:
-- **Frontend**: http://localhost:3001
-- **Backend API**: http://localhost:8080
-- **API Health**: http://localhost:8080/health
-
-Default admin login: `admin` / `Admin@123`
-
-## Local Development Setup
-
-### With Docker (Recommended)
-
-**Prerequisites:**
-- Docker & Docker Compose
-- Git
-
-**Setup:**
-
-```bash
-# Clone repository
-git clone <repository-url>
-cd auth-service
-
-# Start all services
-docker-compose up -d
-
-# View service logs
-docker-compose logs -f [service-name]
 
 # Stop services
 docker-compose down
-
-# Rebuild services after code changes
-docker-compose up --build -d
 ```
 
-**Development Workflow:**
+#### Using External Database
 ```bash
-# Watch backend logs
-docker-compose logs -f backend
+# Set environment variables
+export USE_EXTERNAL_DB=true
+export DB_HOST=localhost
+export DB_PASSWORD=mypass
 
-# Watch frontend logs
-docker-compose logs -f frontend
-
-# Execute commands in containers
-docker-compose exec backend go test ./...
-docker-compose exec frontend npm test
-
-# Reset database (removes all data)
-docker-compose down -v
-docker-compose up -d
+# Start with external database configuration
+docker-compose -f docker-compose.yml -f docker-compose.external-db.yml up -d
 ```
 
-### Without Docker
+### Method 3: Local Development (No Docker)
 
-**Prerequisites:**
-- Go 1.23+
-- Node.js 18+
-- PostgreSQL 15+
-- Git
-
-**Database Setup:**
+#### Prerequisites Setup
 ```bash
-# Install and start PostgreSQL
-# Ubuntu/Debian:
-sudo apt-get install postgresql postgresql-contrib
-sudo systemctl start postgresql
+# Install Go dependencies
+cd backend
+go mod download
 
-# macOS with Homebrew:
+# Install frontend dependencies
+cd ../frontend
+npm install
+
+# Install PostgreSQL (macOS)
 brew install postgresql
 brew services start postgresql
 
-# Create database and user
-sudo -u postgres psql
-CREATE DATABASE auth_service;
-CREATE USER auth_user WITH PASSWORD 'auth_password';
-GRANT ALL PRIVILEGES ON DATABASE auth_service TO auth_user;
-\q
+# Install PostgreSQL (Ubuntu)
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
 ```
 
-**Backend Setup:**
+#### Database Setup
+```bash
+# Create database and user
+sudo -u postgres psql -c "CREATE DATABASE auth_service;"
+sudo -u postgres psql -c "CREATE USER auth_user WITH PASSWORD 'auth_pass';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE auth_service TO auth_user;"
+
+# Load seed data
+psql -h localhost -U auth_user -d auth_service -f tests/seed-test-data.sql
+```
+
+#### Backend Setup
 ```bash
 cd backend
 
 # Copy environment configuration
 cp .env.example .env
 
-# Edit .env with your database credentials
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_USER=auth_user
-# DB_PASSWORD=auth_password
-# DB_NAME=auth_service
+# Edit .env file with your database settings
+cat > .env << EOF
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=auth_user
+DB_PASSWORD=auth_pass
+DB_NAME=auth_service
+DB_SSL_MODE=disable
+SERVER_PORT=8080
+SERVER_HOST=0.0.0.0
+JWT_SECRET_KEY=your-local-development-secret-key
+JWT_ACCESS_TOKEN_TTL=15
+JWT_REFRESH_TOKEN_TTL=10080
+EOF
 
-# Install dependencies
-go mod download
-
-# Run database migrations
-go run cmd/server/main.go migrate
-
-# Start development server
+# Run the backend server
 go run cmd/server/main.go
-
-# Or build and run
-go build -o bin/server cmd/server/main.go
-./bin/server
 ```
 
-**Frontend Setup:**
+#### Frontend Setup
 ```bash
-cd frontend/react-app
+cd frontend
 
-# Install dependencies
-npm install
+# Set API URL for local backend
+echo "REACT_APP_API_URL=http://localhost:8080" > .env.local
 
 # Start development server
 npm start
-
-# Build for production
-npm run build
 ```
 
-**Verify Setup:**
+#### Access the Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **API Health**: http://localhost:8080/health
+
+## 🔧 Setup Script Usage
+
+The `./setup.sh` script provides a unified interface for all deployment scenarios:
+
+### Command Syntax
 ```bash
-# Test backend API
-curl http://localhost:8080/health
-
-# Test frontend
-open http://localhost:3000
+./setup.sh [OPTIONS] [ACTIONS]
 ```
 
-## Production Setup
-
-### Docker Production Deployment
-
-**Prerequisites:**
-- Docker & Docker Compose
-- Domain name (optional)
-- SSL certificates (for HTTPS)
-
-**Production Configuration:**
-
-1. **Environment Setup:**
+### Database Options
 ```bash
-# Copy production environment template
-cp backend/.env.example backend/.env.prod
-
-# Edit production environment variables
-vim backend/.env.prod
+--db-host HOST              # Database host (default: postgres)
+--db-port PORT              # Database port (default: 5432)
+--db-user USER              # Database username (default: postgres)
+--db-password PASSWORD      # Database password (default: postgres)
+--db-name NAME              # Database name (default: auth_service)
+--db-ssl-mode MODE          # SSL mode: disable/require/verify-full
+--use-external-db           # Use external database instead of Docker
 ```
 
-Key production variables:
-```env
-# Security
-JWT_SECRET_KEY=your-super-secure-production-secret-key-change-this
-SERVER_MODE=release
+### Server Options
+```bash
+--server-port PORT          # API server port (default: 8080)
+--server-host HOST          # Server bind address (default: 0.0.0.0)
+--frontend-port PORT        # Frontend port (default: 3001)
+--environment ENV           # development/production (default: development)
+```
 
-# Database (use strong credentials)
-DB_PASSWORD=strong-production-password
+### JWT Options
+```bash
+--jwt-secret SECRET         # JWT secret key (auto-generated if not provided)
+--jwt-access-ttl MINUTES    # Access token TTL (default: 15)
+--jwt-refresh-ttl MINUTES   # Refresh token TTL (default: 10080)
+```
+
+### Logging Options
+```bash
+--log-level LEVEL           # Log level: debug/info/warn/error (default: info)
+--log-file PATH             # Log file path or stdout (default: stdout)
+--log-format FORMAT         # Log format: json/text (default: json)
+--log-max-size MB           # Log file max size in MB (default: 100)
+--log-max-backups COUNT     # Number of log backups to keep (default: 5)
+--log-max-age DAYS          # Max age of log files in days (default: 30)
+```
+
+### Configuration Options
+```bash
+--config-file FILE          # Load settings from configuration file
+--skip-db-init              # Skip database initialization
+--dry-run                   # Show what would be done without executing
+--verbose                   # Show detailed output
+```
+
+### Actions
+```bash
+--build                     # Build Docker images
+--start                     # Start services
+--stop                      # Stop services
+--restart                   # Restart services
+--status                    # Show service status
+--logs                      # View service logs
+--clean                     # Clean Docker resources
+```
+
+### Examples
+
+#### Development Setup
+```bash
+# Quick development setup
+./setup.sh --build --start
+
+# With custom ports
+./setup.sh --server-port=9090 --frontend-port=3002 --build --start
+
+# With debug logging
+./setup.sh --log-level debug --log-format text --build --start
+
+# With verbose output
+./setup.sh --verbose --build --start
+```
+
+#### External Database
+```bash
+# Basic external database
+./setup.sh --use-external-db --db-host=localhost --db-password=mypass --build --start
+
+# Secure external database
+./setup.sh \
+  --use-external-db \
+  --db-host=prod-db.company.com \
+  --db-port=5432 \
+  --db-user=auth_service \
+  --db-password=secure_password \
+  --db-name=auth_production \
+  --db-ssl-mode=require \
+  --build --start
+```
+
+#### Production Deployment
+```bash
+# Using configuration file
+./setup.sh --config-file config/production.env --environment=production --build --start
+
+# Custom production setup
+./setup.sh \
+  --environment=production \
+  --jwt-secret=super-secure-production-key \
+  --log-level info \
+  --log-file /var/log/auth-service/auth-service.log \
+  --log-format json \
+  --server-port=8080 \
+  --frontend-port=3001 \
+  --build --start
+```
+
+#### Management Commands
+```bash
+# Check service status
+./setup.sh --status
+
+# View logs
+./setup.sh --logs
+
+# Restart services
+./setup.sh --restart
+
+# Stop all services
+./setup.sh --stop
+
+# Clean up Docker resources
+./setup.sh --clean
+```
+
+#### Configuration Testing
+```bash
+# Test configuration without running
+./setup.sh --dry-run --use-external-db --db-host=localhost --build --start
+
+# Load from file and test
+./setup.sh --dry-run --config-file config/production.env --build --start
+```
+
+## 📊 Logging Configuration
+
+The auth service supports comprehensive logging configuration for different environments and use cases.
+
+### Quick Logging Examples
+
+#### Console Logging (Development)
+```bash
+./setup.sh --log-level debug --log-format text --build --start
+```
+
+#### File Logging (Production)
+```bash
+./setup.sh \
+  --log-level info \
+  --log-file /var/log/auth-service/auth-service.log \
+  --log-format json \
+  --log-max-size 200 \
+  --log-max-backups 10 \
+  --log-max-age 90 \
+  --build --start
+```
+
+#### Custom Log Location
+```bash
+./setup.sh \
+  --log-file /opt/logs/auth/service.log \
+  --log-level warn \
+  --build --start
+```
+
+### Logging Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--log-level` | info | Log level (debug/info/warn/error) |
+| `--log-file` | stdout | Log file path or stdout for console |
+| `--log-format` | json | Format (json/text) |
+| `--log-max-size` | 100 | Max file size in MB before rotation |
+| `--log-max-backups` | 5 | Number of backup files to keep |
+| `--log-max-age` | 30 | Max age of log files in days |
+
+### Configuration Files with Logging
+
+All environment templates include logging settings:
+
+```bash
+# Development - debug to console
+./setup.sh --config-file config/development.env --build --start
+
+# Production - structured logging to file
+./setup.sh --config-file config/production.env --build --start
+
+# See logging examples
+cat config/logging-examples.env
+```
+
+### Docker Log Integration
+
+Logs are automatically mounted to host directories:
+
+```bash
+# Logs will be available in ./logs/ directory
+./setup.sh --log-file /var/log/auth-service/auth.log --build --start
+
+# View logs
+tail -f ./logs/auth-service.log
+
+# Or use Docker logs
+docker logs -f auth-backend
+```
+
+For complete logging documentation, see [`docs/LOGGING.md`](docs/LOGGING.md).
+
+## 🗄️ Database Setup
+
+### Docker Database (Default)
+The setup script automatically configures PostgreSQL in Docker:
+```bash
+./setup.sh --build --start
+```
+
+### External Database
+For production or existing PostgreSQL instances:
+
+#### Step 1: Initialize Database
+```bash
+./scripts/init-external-db.sh \
+  --db-host=your-db-host \
+  --db-user=postgres \
+  --db-password=your-password \
+  --db-name=auth_service
+```
+
+#### Step 2: Connect Service
+```bash
+./setup.sh \
+  --use-external-db \
+  --db-host=your-db-host \
+  --db-user=auth_user \
+  --db-password=your-password \
+  --db-name=auth_service \
+  --build --start
+```
+
+### Manual Database Setup
+```sql
+-- Create database
+CREATE DATABASE auth_service;
+
+-- Create user
+CREATE USER auth_user WITH PASSWORD 'secure_password';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE auth_service TO auth_user;
+
+-- Connect to database and load schema
+\c auth_service
+\i tests/seed-test-data.sql
+```
+
+## 🌐 Production Deployment
+
+### Production Checklist
+- [ ] Use external PostgreSQL database
+- [ ] Set strong JWT secret (64+ characters)
+- [ ] Enable SSL/TLS for database connections
+- [ ] Configure HTTPS with SSL certificates
+- [ ] Set up monitoring and logging
+- [ ] Configure backup strategy
+- [ ] Set strong passwords for default users
+- [ ] Configure firewall and network security
+
+### Production Configuration
+```bash
+# Copy and customize production config
+cp config/production.env config/my-production.env
+
+# Edit configuration
+vim config/my-production.env
+
+# Deploy
+./setup.sh --config-file config/my-production.env --environment=production --build --start
+```
+
+### Environment Variables for Production
+```bash
+# Database (External)
+DB_HOST=prod-db.company.com
+DB_PORT=5432
+DB_USER=auth_service
+DB_PASSWORD=super_secure_password
+DB_NAME=auth_service_prod
+DB_SSL_MODE=require
+USE_EXTERNAL_DB=true
 
 # Server
-SERVER_HOST=0.0.0.0
 SERVER_PORT=8080
+SERVER_HOST=0.0.0.0
+SERVER_MODE=release
+
+# JWT (CRITICAL: Change in production)
+JWT_SECRET_KEY=your-super-secure-64-character-minimum-jwt-secret-key
+JWT_ACCESS_TOKEN_TTL=15
+JWT_REFRESH_TOKEN_TTL=10080
+
+# Ports
+FRONTEND_PORT=3001
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE=/var/log/auth-service/auth-service.log
+LOG_FORMAT=json
+LOG_MAX_SIZE=200
+LOG_MAX_BACKUPS=10
+LOG_MAX_AGE=90
 ```
 
-2. **SSL Certificate Setup (Optional):**
+### Docker Production Deployment
 ```bash
-# Place your SSL certificates in nginx/ssl/
-mkdir -p nginx/ssl
-cp your-domain.crt nginx/ssl/
-cp your-domain.key nginx/ssl/
+# Production with Nginx and logging
+COMPOSE_PROFILES=docker-db,nginx ./setup.sh \
+  --environment=production \
+  --log-level info \
+  --log-file /var/log/auth-service/auth-service.log \
+  --build --start
 
-# Update nginx configuration
-vim nginx/nginx.conf
+# External database with SSL and structured logging
+./setup.sh \
+  --use-external-db \
+  --db-host=prod-db.company.com \
+  --db-ssl-mode=require \
+  --environment=production \
+  --log-level info \
+  --log-format json \
+  --log-file /var/log/auth-service/auth-service.log \
+  --build --start
 ```
 
-3. **Deploy:**
+## 📖 API Documentation
+
+### Built-in Documentation
+Access comprehensive API documentation at:
+**http://localhost:3001** → **API Documentation** tab
+
+Features:
+- **Interactive Testing**: Test any endpoint directly from the browser
+- **Complete Reference**: All 40+ endpoints documented
+- **SSO Integration Guide**: Step-by-step setup for services
+- **Code Examples**: Multiple programming languages
+- **Request/Response**: Live examples and testing
+
+### Key Endpoints
+
+#### Authentication
 ```bash
-# Production deployment
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-# Check deployment
-docker-compose ps
-docker-compose logs -f
+POST /auth/login           # User login
+POST /auth/token           # JWT token generation
+GET  /me/permissions       # User permissions
+GET  /me/check-permission  # Check specific permission
+GET  /health               # Service health
 ```
 
-### Manual Production Setup
-
-**System Requirements:**
-- Ubuntu 20.04+ / CentOS 8+ / Similar Linux distribution
-- 2GB+ RAM
-- 10GB+ disk space
-- PostgreSQL 15+
-- Nginx
-- Go 1.23+
-- Node.js 18+
-
-**Setup Steps:**
-
-1. **Install Dependencies:**
+#### SSO Integration
 ```bash
-# Update system
-sudo apt-get update && sudo apt-get upgrade -y
-
-# Install PostgreSQL
-sudo apt-get install -y postgresql postgresql-contrib
-
-# Install Nginx
-sudo apt-get install -y nginx
-
-# Install Go 1.23
-wget https://golang.org/dl/go1.23.0.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-source ~/.bashrc
-
-# Install Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+POST /sso/validate         # Validate JWT token
+GET  /sso/validate         # Validate from header
+POST /sso/check-permission # Check user permission
+POST /sso/login            # SSO login
+POST /sso/logout           # SSO logout
 ```
 
-2. **Database Configuration:**
+#### User Management
 ```bash
-sudo -u postgres createdb auth_service
-sudo -u postgres createuser auth_user
-sudo -u postgres psql -c "ALTER USER auth_user WITH PASSWORD 'secure_password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE auth_service TO auth_user;"
+GET    /users              # List users
+POST   /users              # Create user
+GET    /users/{id}         # Get user
+PUT    /users/{id}         # Update user
+DELETE /users/{id}         # Delete user
+GET    /users/export/csv   # Export users
+POST   /users/import/csv   # Import users
 ```
 
-3. **Application Deployment:**
+#### Role & Group Management
 ```bash
-# Clone application
-git clone <repository-url> /opt/auth-service
-cd /opt/auth-service
-
-# Build backend
-cd backend
-cp .env.example .env
-# Edit .env with production values
-go build -o bin/server cmd/server/main.go
-
-# Build frontend
-cd ../frontend/react-app
-npm install
-npm run build
-
-# Create system service
-sudo cp deployment/systemd/auth-service.service /etc/systemd/system/
-sudo systemctl enable auth-service
-sudo systemctl start auth-service
+GET /roles                 # List roles
+GET /groups                # List groups
+GET /services              # List services
 ```
 
-4. **Nginx Configuration:**
-```bash
-# Copy nginx configuration
-sudo cp nginx/nginx.conf /etc/nginx/sites-available/auth-service
-sudo ln -s /etc/nginx/sites-available/auth-service /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
+## 🔗 SSO Integration Guide
 
-## API Documentation
+### Quick Integration Steps
 
-### Base URL
-- Development: `http://localhost:8080`
-- Production: `https://your-domain.com/api`
+#### Step 1: Register Your Service
+1. Login to auth service admin panel
+2. Go to **Service Management** tab
+3. Click **Add Service**
+4. Save the **Client ID** and **Client Secret**
 
-### Authentication Endpoints
-
-#### POST `/auth/token`
-Generate JWT tokens using various OAuth2 grant types.
-
-**Grant Type: Password**
-```bash
-curl -X POST http://localhost:8080/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "password",
-    "username": "admin",
-    "password": "Admin@123"
-  }'
-```
-
-**Response:**
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
-  "token_type": "Bearer",
-  "expires_in": 900
-}
-```
-
-**Grant Type: Refresh Token**
-```bash
-curl -X POST http://localhost:8080/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "refresh_token",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
-  }'
-```
-
-**Grant Type: Client Credentials**
-```bash
-curl -X POST http://localhost:8080/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "client_credentials",
-    "client_id": "your-client-id",
-    "client_secret": "your-client-secret"
-  }'
-```
-
-#### GET `/me/permissions`
-Get current user's permissions.
-
-```bash
-curl -X GET http://localhost:8080/me/permissions \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
-```
-
-**Response:**
-```json
-{
-  "permissions": [
-    {
-      "service": "auth-service",
-      "action": "read",
-      "resource": "users"
-    },
-    {
-      "service": "auth-service", 
-      "action": "write",
-      "resource": "users"
-    }
-  ]
-}
-```
-
-#### GET `/me/check-permission`
-Check if user has specific permission.
-
-```bash
-curl -X GET "http://localhost:8080/me/check-permission?service=auth-service&action=read&resource=users" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
-```
-
-**Response:**
-```json
-{
-  "has_permission": true
-}
-```
-
-### User Management Endpoints
-
-#### GET `/users`
-List all users with their roles.
-
-```bash
-curl -X GET http://localhost:8080/users \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
-```
-
-**Response:**
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "username": "admin",
-      "email": "admin@example.com",
-      "active": true,
-      "roles": [
-        {
-          "id": 1,
-          "name": "super_admin"
-        }
-      ]
-    }
-  ]
-}
-```
-
-#### POST `/users`
-Create a new user.
-
-```bash
-curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "newuser",
-    "email": "newuser@example.com",
-    "password": "NewUser@123",
-    "role_ids": [2]
-  }'
-```
-
-#### PUT `/users/{id}`
-Update user information.
-
-```bash
-curl -X PUT http://localhost:8080/users/2 \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "updateduser",
-    "email": "updated@example.com",
-    "active": true
-  }'
-```
-
-#### DELETE `/users/{id}`
-Delete a user.
-
-```bash
-curl -X DELETE http://localhost:8080/users/2 \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
-```
-
-### Role Management Endpoints
-
-#### GET `/roles`
-List all roles with permissions.
-
-```bash
-curl -X GET http://localhost:8080/roles \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
-```
-
-#### POST `/roles`
-Create a new role.
-
-```bash
-curl -X POST http://localhost:8080/roles \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "editor",
-    "description": "Editor role with limited permissions",
-    "group_ids": [1]
-  }'
-```
-
-### Import/Export Endpoints
-
-#### GET `/users/export/csv`
-Export users to CSV format.
-
-```bash
-curl -X GET http://localhost:8080/users/export/csv \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -o users.csv
-```
-
-#### POST `/users/import/csv`
-Import users from CSV file.
-
-```bash
-curl -X POST http://localhost:8080/users/import/csv \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  -F "file=@users.csv"
-```
-
-## OAuth2 & JWT Authentication
-
-### Supported Grant Types
-
-#### 1. Password Grant Type
-Used for first-party applications where the client can securely store credentials.
-
-**Use Case:** React frontend login
+#### Step 2: Integrate Your Application
 ```javascript
-const response = await fetch('/auth/token', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    grant_type: 'password',
-    username: 'user@example.com',
-    password: 'userpassword'
-  })
-});
-```
-
-#### 2. Refresh Token Grant Type
-Used to obtain new access tokens when they expire.
-
-**Use Case:** Automatic token refresh
-```javascript
-const response = await fetch('/auth/token', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    grant_type: 'refresh_token',
-    refresh_token: storedRefreshToken
-  })
-});
-```
-
-#### 3. Client Credentials Grant Type
-Used for service-to-service authentication.
-
-**Use Case:** Microservice authentication
-```bash
-# Service authentication
-curl -X POST http://localhost:8080/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "client_credentials",
-    "client_id": "service-client-id",
-    "client_secret": "service-client-secret"
-  }'
-```
-
-### Token Structure
-
-**Access Token (15 minutes TTL):**
-```json
-{
-  "sub": "1",
-  "username": "admin",
-  "email": "admin@example.com",
-  "roles": ["super_admin"],
-  "permissions": [
-    {
-      "service": "auth-service",
-      "action": "read", 
-      "resource": "users"
+// Example: Node.js/Express integration
+const ssoAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  const response = await axios.get('http://localhost:8080/sso/validate', {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'X-Client-ID': process.env.SSO_CLIENT_ID,
+      'X-Client-Secret': process.env.SSO_CLIENT_SECRET
     }
-  ],
-  "exp": 1640995200,
-  "iat": 1640994300
-}
-```
-
-**Refresh Token (7 days TTL):**
-```json
-{
-  "sub": "1",
-  "type": "refresh",
-  "exp": 1641599100,
-  "iat": 1640994300
-}
-```
-
-## SSO Integration
-
-### Enhanced Security Model - Dual Authentication
-
-⚠️ **IMPORTANT**: All SSO endpoints use enhanced security requiring **DUAL AUTHENTICATION**:
-- **User Token**: JWT token from login
-- **Service Credentials**: Client ID + Client Secret
-
-This prevents unauthorized services from accepting valid user tokens and ensures both user identity AND service legitimacy.
-
-### SSO Endpoints
-
-The authentication service provides the following SSO endpoints:
-
-#### Core SSO Endpoints
-- `POST /sso/validate` - Validate JWT token with service credentials
-- `GET /sso/validate` - Validate token from Authorization header with service credentials
-- `POST /sso/check-permission` - Check user permissions with service credentials
-- `POST /sso/login` - Perform SSO login for a specific service
-- `POST /sso/logout` - Logout user from SSO
-
-### Integrating External Services
-
-#### 1. Service Registration
-
-Register your service to receive tokens:
-
-```bash
-curl -X POST http://localhost:8080/services \
-  -H "Authorization: Bearer admin-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "my-service",
-    "description": "My external service",
-    "client_id": "my-service-client-id", 
-    "client_secret": "secure-client-secret",
-    "redirect_uris": ["https://myservice.com/callback"],
-    "allowed_origins": ["https://myservice.com"],
-    "scopes": ["read:documents", "write:documents", "read:profile"]
-  }'
-```
-
-**Response includes:**
-- Service ID (UUID)
-- Client credentials for dual authentication
-- Redirect URIs for SSO flows
-
-#### 2. Enhanced Token Validation (Dual Authentication)
-
-**POST Method with Service Credentials:**
-```bash
-curl -X POST http://localhost:8080/sso/validate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "token": "user-jwt-token",
-    "client_id": "my-service-client-id",
-    "client_secret": "secure-client-secret"
-  }'
-```
-
-**GET Method with Headers:**
-```bash
-curl -X GET http://localhost:8080/sso/validate \
-  -H "Authorization: Bearer user-jwt-token" \
-  -H "X-Client-ID: my-service-client-id" \
-  -H "X-Client-Secret: secure-client-secret"
-```
-
-**Enhanced Response:**
-```json
-{
-  "valid": true,
-  "user_id": "123e4567-e89b-12d3-a456-426614174000",
-  "username": "john.doe",
-  "email": "john.doe@example.com",
-  "roles": ["document_administrator"],
-  "groups": ["document_administrators"],
-  "permissions": [
-    {"resource": "documents", "action": "read"},
-    {"resource": "documents", "action": "write"},
-    {"resource": "users", "action": "read"}
-  ],
-  "service_id": "22222222-2222-2222-2222-222222222222",
-  "service_name": "My Service",
-  "expires_at": 1640995200
-}
-```
-
-#### 3. Permission Checking with Service Authentication
-
-```bash
-curl -X POST http://localhost:8080/sso/check-permission \
-  -H "Content-Type: application/json" \
-  -d '{
-    "token": "user-jwt-token",
-    "resource": "documents",
-    "action": "write",
-    "client_id": "my-service-client-id",
-    "client_secret": "secure-client-secret"
-  }'
-```
-
-**Go Service Integration Example:**
-```go
-import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "net/http"
-)
-
-type SSOClient struct {
-    AuthURL      string
-    ClientID     string
-    ClientSecret string
-}
-
-type ValidationRequest struct {
-    Token        string `json:"token"`
-    ClientID     string `json:"client_id"`
-    ClientSecret string `json:"client_secret"`
-}
-
-type UserInfo struct {
-    Valid       bool                   `json:"valid"`
-    UserID      string                 `json:"user_id"`
-    Username    string                 `json:"username"`
-    Email       string                 `json:"email"`
-    Roles       []string               `json:"roles"`
-    Groups      []string               `json:"groups"`
-    Permissions []PermissionInfo       `json:"permissions"`
-    ServiceID   string                 `json:"service_id"`
-    ServiceName string                 `json:"service_name"`
-    ExpiresAt   int64                  `json:"expires_at"`
-}
-
-type PermissionInfo struct {
-    Resource string `json:"resource"`
-    Action   string `json:"action"`
-}
-
-func (c *SSOClient) ValidateToken(token string) (*UserInfo, error) {
-    reqBody := ValidationRequest{
-        Token:        token,
-        ClientID:     c.ClientID,
-        ClientSecret: c.ClientSecret,
-    }
-    
-    jsonBody, _ := json.Marshal(reqBody)
-    
-    resp, err := http.Post(
-        c.AuthURL+"/sso/validate",
-        "application/json",
-        bytes.NewBuffer(jsonBody),
-    )
-    if err != nil {
-        return nil, err
-    }
-    defer resp.Body.Close()
-    
-    var userInfo UserInfo
-    if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-        return nil, err
-    }
-    
-    return &userInfo, nil
-}
-
-func (c *SSOClient) CheckPermission(token, resource, action string) (bool, error) {
-    reqBody := map[string]string{
-        "token":         token,
-        "resource":      resource,
-        "action":        action,
-        "client_id":     c.ClientID,
-        "client_secret": c.ClientSecret,
-    }
-    
-    jsonBody, _ := json.Marshal(reqBody)
-    
-    resp, err := http.Post(
-        c.AuthURL+"/sso/check-permission",
-        "application/json",
-        bytes.NewBuffer(jsonBody),
-    )
-    if err != nil {
-        return false, err
-    }
-    defer resp.Body.Close()
-    
-    var result struct {
-        Allowed bool `json:"allowed"`
-    }
-    
-    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-        return false, err
-    }
-    
-    return result.Allowed, nil
-}
-```
-
-#### 4. Middleware Implementation
-
-**Express.js Middleware with Dual Authentication:**
-```javascript
-const axios = require('axios');
-
-class SSOMiddleware {
-  constructor(authServiceUrl, clientId, clientSecret) {
-    this.authServiceUrl = authServiceUrl;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-  }
-
-  authenticate(requiredPermission = null) {
-    return async (req, res, next) => {
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader) {
-        return res.status(401).json({ error: 'No token provided' });
-      }
-
-      const token = authHeader.split(' ')[1];
-      
-      try {
-        // Validate token with dual authentication
-        const response = await axios.post(`${this.authServiceUrl}/sso/validate`, {
-          token: token,
-          client_id: this.clientId,
-          client_secret: this.clientSecret
-        });
-
-        const userInfo = response.data;
-        
-        if (!userInfo.valid) {
-          return res.status(401).json({ error: 'Invalid token' });
-        }
-
-        // Check specific permission if required
-        if (requiredPermission) {
-          const hasPermission = userInfo.permissions.some(p => 
-            p.resource === requiredPermission.resource &&
-            p.action === requiredPermission.action
-          );
-          
-          if (!hasPermission) {
-            return res.status(403).json({ error: 'Insufficient permissions' });
-          }
-        }
-        
-        req.user = userInfo;
-        next();
-      } catch (error) {
-        return res.status(401).json({ error: 'Token validation failed' });
-      }
-    };
-  }
-
-  requirePermission(resource, action) {
-    return this.authenticate({ resource, action });
-  }
-}
-
-// Usage
-const ssoMiddleware = new SSOMiddleware(
-  'http://localhost:8080',
-  'my-service-client-id',
-  'secure-client-secret'
-);
-
-// Protected route requiring authentication
-app.get('/protected', ssoMiddleware.authenticate(), (req, res) => {
-  res.json({ 
-    message: `Hello ${req.user.username}`,
-    roles: req.user.roles,
-    permissions: req.user.permissions
   });
-});
-
-// Protected route requiring specific permission
-app.get('/documents', ssoMiddleware.requirePermission('documents', 'read'), (req, res) => {
-  // Handle documents request
-  res.json({ documents: [] });
-});
+  
+  if (response.data.valid) {
+    req.user = response.data;
+    next();
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+};
 ```
 
-#### 5. Security Benefits of Dual Authentication
+#### Step 3: Assign Users
+1. Go to **Group Management** → Create groups
+2. Assign your service to groups
+3. Assign users to roles that have access to groups
 
-The enhanced security model prevents several attack vectors:
+### Platform Examples
+The built-in API documentation provides complete integration examples for:
+- **Node.js/Express**
+- **React/TypeScript**
+- **Java/Spring Boot**
+- **Go/Gin**
+- **Python/Django**
 
-1. **Malicious Service Protection**: A rogue service can't use valid user tokens without proper service credentials
-2. **Token Theft Mitigation**: Stolen user tokens are useless without service credentials  
-3. **Service Accountability**: All token validations are tied to specific registered services
-4. **Audit Trail**: Full traceability of which services are validating which users
-5. **Granular Access Control**: Services can only validate tokens for users who have access to their service groups
+## 🧪 Testing
 
-#### 6. Complete Integration Example
-
-Here's a complete example of integrating a document service:
-
+### BDD Test Suite
 ```bash
-# Step 1: Register the service
-curl -X POST http://localhost:8080/services \
-  -H "Authorization: Bearer admin-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Document Management Service",
-    "description": "Document storage and management",
-    "client_id": "doc-service-client-123",
-    "client_secret": "DocService@Secret123",
-    "redirect_uris": ["http://localhost:3002/auth/callback"],
-    "scopes": ["read:documents", "write:documents", "read:profile"]
-  }'
+cd tests/bdd
 
-# Step 2: Get user token
-TOKEN=$(curl -s -X POST http://localhost:8080/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"grant_type": "password", "username": "doc_admin", "password": "Admin@123"}' \
-  | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
+# Install dependencies
+npm install
 
-# Step 3: Validate token with service credentials
-curl -X POST http://localhost:8080/sso/validate \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"token\": \"$TOKEN\",
-    \"client_id\": \"doc-service-client-123\",
-    \"client_secret\": \"DocService@Secret123\"
-  }"
+# Run all tests
+npm run test
 
-# Step 4: Check specific permissions
-curl -X POST http://localhost:8080/sso/check-permission \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"token\": \"$TOKEN\",
-    \"resource\": \"documents\",
-    \"action\": \"write\",
-    \"client_id\": \"doc-service-client-123\",
-    \"client_secret\": \"DocService@Secret123\"
-  }"
+# Run specific test suites
+npm run test:auth          # Authentication tests
+npm run test:responsive    # Responsive design tests
+npm run test:browser       # Cross-browser tests
+```
 
-# Step 5: Use token with your service API
-curl -X GET http://localhost:8081/api/documents \
+### Manual Testing
+```bash
+# Test API endpoints
+curl -X GET http://localhost:8080/health
+
+# Test authentication
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"Admin@123"}'
+```
+
+### Integration Testing
+```bash
+# Test SSO validation
+TOKEN="your-jwt-token"
+curl -X GET http://localhost:8080/sso/validate \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Frontend SSO Integration
+## ⚙️ Configuration
 
-#### React Integration Example
+### Environment Files
+- `config/development.env` - Development settings with debug logging
+- `config/production.env` - Production template with file logging
+- `config/external-db.env` - External database example
+- `config/logging-examples.env` - Comprehensive logging examples
+- `.env.example` - Base template with all options
 
-```javascript
-// AuthProvider.js
-import { createContext, useContext, useState, useEffect } from 'react';
+### Configuration Loading Priority
+1. Command line arguments
+2. Configuration file (--config-file)
+3. Environment variables
+4. Default values
 
-const AuthContext = createContext();
-
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      validateToken(token);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const login = async (username, password) => {
-    const response = await fetch('/auth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        grant_type: 'password',
-        username,
-        password
-      })
-    });
-
-    const data = await response.json();
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
-    
-    await fetchUserInfo();
-  };
-
-  const validateToken = async (token) => {
-    try {
-      const response = await fetch('/me/permissions', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        await fetchUserInfo();
-      } else {
-        logout();
-      }
-    } catch (error) {
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserInfo = async () => {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch('/me/permissions', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    const data = await response.json();
-    setUser(data);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-```
-
-## Service-to-Service Authentication
-
-### Enhanced Service Authentication Model
-
-The authentication service supports multiple patterns for service-to-service communication:
-
-1. **Client Credentials Flow**: Direct service-to-service authentication
-2. **Dual Authentication SSO**: User context with service verification
-3. **Service Proxy Pattern**: Services validating user tokens on behalf of other services
-
-### Client Credentials Flow
-
-For direct service-to-service communication without user context:
-
-#### 1. Register Service Client
-
+### Custom Configuration
 ```bash
-curl -X POST http://localhost:8080/services \
-  -H "Authorization: Bearer admin-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "payment-service",
-    "description": "Payment processing service",
-    "client_id": "payment-service-client",
-    "client_secret": "secure-client-secret",
-    "service_type": "backend",
-    "scopes": ["read:payments", "write:payments", "read:users"]
-  }'
+# Create custom config
+cp config/development.env config/my-custom.env
+
+# Edit settings
+vim config/my-custom.env
+
+# Use custom config
+./setup.sh --config-file config/my-custom.env --build --start
 ```
 
-#### 2. Service Authentication
+## 🔒 Security
 
-**Python Example:**
-```python
-import requests
-import jwt
-import time
+### Security Features
+- **bcrypt Password Hashing** - Industry-standard password protection
+- **JWT Token Security** - Signed tokens with expiration
+- **Token Blacklisting** - Secure logout implementation
+- **RBAC Authorization** - Fine-grained access control
+- **SQL Injection Protection** - Parameterized queries
+- **CORS Protection** - Cross-origin request filtering
+- **Input Validation** - Server-side validation
+- **SSL/TLS Support** - Encrypted communications
 
-class AuthServiceClient:
-    def __init__(self, auth_url, client_id, client_secret):
-        self.auth_url = auth_url
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.access_token = None
-        self.token_expires = 0
+### Security Best Practices
+1. **Change Default Passwords** - Update admin password immediately
+2. **Strong JWT Secret** - Use 64+ character random secret
+3. **Enable HTTPS** - Always use SSL/TLS in production
+4. **Database Security** - Use SSL connections and strong passwords
+5. **Network Security** - Restrict database access to application only
+6. **Regular Updates** - Keep dependencies updated
+7. **Audit Logging** - Monitor authentication events
+8. **Backup Strategy** - Regular encrypted backups
 
-    def get_access_token(self):
-        if self.access_token and time.time() < self.token_expires:
-            return self.access_token
+### Production Security Checklist
+- [ ] Strong JWT secret configured
+- [ ] Default passwords changed
+- [ ] HTTPS enabled
+- [ ] Database SSL enabled
+- [ ] Network access restricted
+- [ ] Monitoring configured
+- [ ] Backup strategy implemented
+- [ ] Security headers configured
 
-        response = requests.post(f"{self.auth_url}/auth/token", json={
-            "grant_type": "client_credentials",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret
-        })
+## 👥 Default Users
 
-        if response.status_code == 200:
-            data = response.json()
-            self.access_token = data["access_token"]
-            self.token_expires = time.time() + data["expires_in"] - 60
-            return self.access_token
-        
-        raise Exception("Failed to get access token")
+After setup, the following test users are available:
 
-    def make_authenticated_request(self, method, url, **kwargs):
-        token = self.get_access_token()
-        headers = kwargs.get('headers', {})
-        headers['Authorization'] = f'Bearer {token}'
-        kwargs['headers'] = headers
-        
-        return requests.request(method, url, **kwargs)
+### Administrator
+- **Username**: admin
+- **Password**: Admin@123
+- **Role**: Super Admin
+- **Permissions**: Full system access
 
-# Usage
-auth_client = AuthServiceClient(
-    auth_url="http://localhost:8080",
-    client_id="payment-service-client", 
-    client_secret="secure-client-secret"
-)
+### Test Users
+- **Usernames**: user1, user2, ..., user10
+- **Password**: User@123
+- **Role**: Standard User
+- **Permissions**: Limited access
 
-# Make authenticated request to another service
-response = auth_client.make_authenticated_request(
-    'GET',
-    'http://user-service/api/users/123'
-)
-```
+### Service Accounts
+- **Document Service**: Pre-configured for SSO testing
+- **Client ID**: Available in Service Management tab
 
-**Go Example:**
-```go
-package main
+⚠️ **Security Warning**: Change all default passwords in production!
 
-import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "net/http"
-    "time"
-)
+## 🆘 Troubleshooting
 
-type AuthClient struct {
-    AuthURL      string
-    ClientID     string
-    ClientSecret string
-    AccessToken  string
-    TokenExpires time.Time
-}
+### Common Issues
 
-type TokenResponse struct {
-    AccessToken  string `json:"access_token"`
-    TokenType    string `json:"token_type"`
-    ExpiresIn    int    `json:"expires_in"`
-}
-
-func (c *AuthClient) GetAccessToken() (string, error) {
-    if c.AccessToken != "" && time.Now().Before(c.TokenExpires) {
-        return c.AccessToken, nil
-    }
-
-    payload := map[string]string{
-        "grant_type":    "client_credentials",
-        "client_id":     c.ClientID,
-        "client_secret": c.ClientSecret,
-    }
-
-    jsonPayload, _ := json.Marshal(payload)
-    
-    resp, err := http.Post(
-        c.AuthURL+"/auth/token",
-        "application/json",
-        bytes.NewBuffer(jsonPayload),
-    )
-    if err != nil {
-        return "", err
-    }
-    defer resp.Body.Close()
-
-    var tokenResp TokenResponse
-    if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-        return "", err
-    }
-
-    c.AccessToken = tokenResp.AccessToken
-    c.TokenExpires = time.Now().Add(time.Duration(tokenResp.ExpiresIn-60) * time.Second)
-    
-    return c.AccessToken, nil
-}
-
-func (c *AuthClient) MakeAuthenticatedRequest(method, url string) (*http.Response, error) {
-    token, err := c.GetAccessToken()
-    if err != nil {
-        return nil, err
-    }
-
-    req, err := http.NewRequest(method, url, nil)
-    if err != nil {
-        return nil, err
-    }
-
-    req.Header.Set("Authorization", "Bearer "+token)
-    
-    client := &http.Client{}
-    return client.Do(req)
-}
-```
-
-### Microservices Integration Pattern
-
-For microservices architecture, implement a shared authentication middleware:
-
-**Express.js Middleware:**
-```javascript
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
-
-const authMiddleware = (requiredPermission) => {
-  return async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    try {
-      // Verify token locally (faster)
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Check permission if required
-      if (requiredPermission) {
-        const hasPermission = decoded.permissions.some(p => 
-          p.service === requiredPermission.service &&
-          p.action === requiredPermission.action &&
-          p.resource === requiredPermission.resource
-        );
-        
-        if (!hasPermission) {
-          return res.status(403).json({ error: 'Insufficient permissions' });
-        }
-      }
-      
-      req.user = decoded;
-      next();
-    } catch (error) {
-      // Token invalid, verify with auth service
-      try {
-        const response = await axios.get('http://auth-service:8080/me/permissions', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        req.user = response.data;
-        next();
-      } catch (authError) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-    }
-  };
-};
-
-// Usage in routes
-app.get('/users', authMiddleware({
-  service: 'user-service',
-  action: 'read', 
-  resource: 'users'
-}), (req, res) => {
-  // Handle request
-});
-```
-
-## Testing
-
-### BDD Testing with Cucumber
-
-The project includes comprehensive BDD tests using Cucumber.js and Playwright.
-
-**Run All Tests:**
+#### Port Already in Use
 ```bash
-cd tests/bdd
-npm install
-npm run test
+# Check what's using the port
+lsof -i :8080
+
+# Use different ports
+./setup.sh --server-port=9090 --frontend-port=3002 --build --start
 ```
 
-**Run Specific Test Suites:**
+#### Database Connection Failed
 ```bash
-# Authentication tests
-npm run test:auth
+# Check database status
+./setup.sh --status
 
-# Responsive design tests  
-npm run test:responsive
-
-# Cross-browser compatibility tests
-npm run test:browser
+# Test external database connection
+./scripts/init-external-db.sh --db-host=localhost --db-password=test
 ```
 
-**Test Configuration:**
+#### Docker Issues
 ```bash
-# Chrome only (fastest)
-npm run test -- --profile=chrome
+# Clean Docker resources
+./setup.sh --clean
 
-# All browsers
-npm run test -- --profile=all-browsers
-
-# Mobile devices
-npm run test -- --profile=mobile
+# Rebuild from scratch
+docker system prune -af
+./setup.sh --build --start
 ```
 
-### Backend Testing
-
+#### Permission Denied
 ```bash
-cd backend
-
-# Run all tests
-go test ./...
-
-# Run specific package tests
-go test ./internal/handlers/...
-
-# Run tests with coverage
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
-
-# Run tests with verbose output
-go test -v ./...
+# Make scripts executable
+chmod +x setup.sh
+chmod +x scripts/init-external-db.sh
 ```
 
-### Frontend Testing
-
+### Debug Commands
 ```bash
-cd frontend/react-app
+# Detailed configuration check
+./setup.sh --dry-run --verbose --build --start
 
-# Run tests
-npm test
+# Service status
+./setup.sh --status
 
-# Run tests with coverage
-npm test -- --coverage
+# View logs
+./setup.sh --logs
 
-# Run specific test files
-npm test -- --testPathPattern=Login.test.js
+# Test configuration with logging
+./setup.sh --config-file config/development.env --dry-run --build
+
+# Debug with custom logging
+./setup.sh --log-level debug --log-file /tmp/debug.log --restart
 ```
 
-## Environment Variables
+### Getting Help
+1. Check the built-in API documentation
+2. Review the setup script help: `./setup.sh --help`
+3. Check service logs: `./setup.sh --logs`
+4. Verify configuration: `./setup.sh --status`
 
-### Backend Environment Variables
+---
 
-Create `backend/.env` from `backend/.env.example`:
+## 🚀 Ready to Deploy?
 
-```env
-# Database Configuration
-DB_HOST=postgres                    # Database host
-DB_PORT=5432                       # Database port
-DB_USER=postgres                   # Database username
-DB_PASSWORD=postgres               # Database password
-DB_NAME=auth_service              # Database name
-DB_SSL_MODE=disable               # SSL mode (disable/require/verify-full)
+Choose your deployment method:
 
-# Server Configuration
-SERVER_PORT=8080                  # Server port
-SERVER_HOST=0.0.0.0              # Server host (0.0.0.0 for all interfaces)
-SERVER_MODE=debug                 # Server mode (debug/release)
+1. **Quick Start**: `./setup.sh --build --start`
+2. **External DB**: Follow the [Database Setup](#-database-setup) guide
+3. **Production**: Use the [Production Deployment](#-production-deployment) guide
 
-# JWT Configuration
-JWT_SECRET_KEY=your-secret-key-change-this-in-production
-JWT_ACCESS_TOKEN_TTL=15           # Access token TTL in minutes
-JWT_REFRESH_TOKEN_TTL=10080       # Refresh token TTL in minutes (7 days)
-
-# CORS Configuration
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
-CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
-CORS_ALLOWED_HEADERS=Content-Type,Authorization
-
-# Logging
-LOG_LEVEL=info                    # Log level (debug/info/warn/error)
-LOG_FORMAT=json                   # Log format (json/text)
-```
-
-### Frontend Environment Variables
-
-Create `frontend/react-app/.env`:
-
-```env
-# API Configuration
-REACT_APP_API_BASE_URL=http://localhost:8080
-
-# App Configuration
-REACT_APP_APP_NAME=Auth Service
-REACT_APP_VERSION=1.0.0
-
-# Development
-GENERATE_SOURCEMAP=true
-```
-
-### Docker Environment Variables
-
-For Docker deployment, create `.env` in project root:
-
-```env
-# Service Ports
-FRONTEND_PORT=3001
-BACKEND_PORT=8080
-DB_PORT=5433
-NGINX_HTTP_PORT=80
-NGINX_HTTPS_PORT=443
-
-# Database
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=auth_service
-
-# JWT Secret (change in production)
-JWT_SECRET_KEY=your-production-secret-key-change-this
-```
-
-## Default Users
-
-The system comes with pre-configured users for testing:
-
-### Super Admin
-- **Username:** `admin`
-- **Password:** `Admin@123`
-- **Permissions:** Full system access
-- **Use Case:** System administration, user management
-
-### Standard Users
-- **Usernames:** `user1` through `user10`
-- **Password:** `User@123` (for all)
-- **Permissions:** Basic user permissions
-- **Use Case:** Testing different user roles and permissions
-
-### Service-Specific Test Users
-
-#### Document Service Users
-- **Document Administrator:**
-  - Username: `doc_admin`
-  - Password: `Admin@123`
-  - Email: `docadmin@example.com`
-  - Role: `document_administrator`
-  - Permissions: read/write/delete documents, read users and profiles
-  - Use Case: Testing document service administrative functions
-
-- **Document User:**
-  - Username: `doc_user`
-  - Password: `User@123`
-  - Email: `docuser@example.com`
-  - Role: `document_user`
-  - Permissions: read documents and profiles only
-  - Use Case: Testing document service with limited permissions
-
-#### Service Administrator
-- **Username:** `service_admin`
-- **Password:** `Admin@123`
-- **Permissions:** Service management, user administration
-- **Use Case:** Managing services, groups, and service assignments
-
-### Creating Custom Users
-
-**Via API:**
-```bash
-curl -X POST http://localhost:8080/users \
-  -H "Authorization: Bearer admin-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "customuser",
-    "email": "custom@example.com", 
-    "password": "CustomUser@123",
-    "role_ids": [2]
-  }'
-```
-
-**Via Frontend:**
-1. Login as admin
-2. Navigate to User Management tab
-3. Click "Add User"
-4. Fill in user details and assign roles
-5. Click "Create User"
-
-## Contributing
-
-### Development Workflow
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-3. **Make changes following the coding standards**
-4. **Run tests**
-   ```bash
-   # Backend tests
-   cd backend && go test ./...
-   
-   # Frontend tests
-   cd frontend/react-app && npm test
-   
-   # BDD tests
-   cd tests/bdd && npm run test
-   ```
-
-5. **Commit changes**
-   ```bash
-   git commit -m "Add: your feature description"
-   ```
-
-6. **Push and create PR**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-### Coding Standards
-
-**Go Backend:**
-- Follow Go conventions and `gofmt` formatting
-- Use meaningful variable and function names
-- Add comments for exported functions
-- Handle errors appropriately
-- Write unit tests for new functionality
-
-**React Frontend:**
-- Use TypeScript for type safety
-- Follow React hooks patterns
-- Use functional components
-- Add PropTypes for components
-- Follow CSS-in-JS or CSS modules patterns
-
-**Testing:**
-- Write BDD scenarios for new features
-- Maintain test coverage above 80%
-- Test both success and error cases
-- Use descriptive test names
-
-### Project Structure Guidelines
-
-When adding new features:
-
-**Backend:**
-```
-internal/
-├── handlers/          # Add new HTTP handlers
-├── services/          # Add business logic
-├── repository/        # Add data access methods
-├── models/            # Add new database models
-└── middleware/        # Add new middleware
-```
-
-**Frontend:**
-```
-src/
-├── components/        # Add new React components
-├── hooks/             # Add custom hooks
-├── utils/             # Add utility functions
-├── types/             # Add TypeScript types
-└── services/          # Add API service calls
-```
-
-### Security Guidelines
-
-- Never commit secrets or API keys
-- Use environment variables for configuration
-- Validate all inputs on both client and server
-- Use parameterized queries to prevent SQL injection
-- Implement proper CORS configuration
-- Use HTTPS in production
-- Regularly update dependencies
+**Need Help?** Check the [API Documentation](#-api-documentation) tab in the web interface for complete integration guides and examples.
