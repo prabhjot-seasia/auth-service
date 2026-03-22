@@ -37,7 +37,7 @@ func main() {
 	roleHandler := handlers.NewRoleHandler(roleService, validationService)
 	groupHandler := handlers.NewGroupHandler(groupService, validationService)
 	serviceHandler := handlers.NewServiceHandler(userService, validationService)
-	ssoHandler := handlers.NewSSOHandler(userService, jwtManager, tokenBlacklist)
+	ssoHandler := handlers.NewSSOHandler(userService, jwtManager, tokenBlacklist, cfg.Server.FrontendURL)
 	documentHandler := handlers.NewDocumentHandler(userService)
 	healthHandler := handlers.NewHealthHandler()
 

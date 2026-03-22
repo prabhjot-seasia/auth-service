@@ -6,6 +6,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
 import { PasswordChange } from './components/PasswordChange';
+import { AuthCallback } from './routes/AuthCallback';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <PermissionProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/password-change" element={<PasswordChange />} />

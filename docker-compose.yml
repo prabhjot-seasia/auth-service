@@ -10,7 +10,6 @@ services:
       - "${DB_PORT_EXTERNAL:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./tests/seed-test-data.sql:/docker-entrypoint-initdb.d/01-seed-data.sql:ro
     networks:
       - auth-network
     healthcheck:
@@ -27,7 +26,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth-backend
     environment:
-      DB_HOST: ${DB_HOST:-postgres}
+      DB_HOST: ${DB_HOST:-host.docker.internal}
       DB_PORT: ${DB_PORT:-5432}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -45,6 +44,7 @@ services:
       LOG_MAX_SIZE: ${LOG_MAX_SIZE:-100}
       LOG_MAX_BACKUPS: ${LOG_MAX_BACKUPS:-5}
       LOG_MAX_AGE: ${LOG_MAX_AGE:-30}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     volumes:
@@ -68,7 +68,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth-react-frontend
     ports:
-      - "${FRONTEND_PORT:-3001}:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - auth-backend
     networks:

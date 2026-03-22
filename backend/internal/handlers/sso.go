@@ -17,13 +17,18 @@ type SSOHandler struct {
 	userService    *services.UserService
 	jwtManager     *auth.JWTManager
 	tokenBlacklist *services.TokenBlacklist
+	frontendURL    string
 }
 
-func NewSSOHandler(userService *services.UserService, jwtManager *auth.JWTManager, blacklist *services.TokenBlacklist) *SSOHandler {
+func NewSSOHandler(userService *services.UserService, jwtManager *auth.JWTManager, blacklist *services.TokenBlacklist, frontendURL string) *SSOHandler {
+	if frontendURL == "" {
+		frontendURL = "http://localhost:3000"
+	}
 	return &SSOHandler{
 		userService:    userService,
 		jwtManager:     jwtManager,
 		tokenBlacklist: blacklist,
+		frontendURL:    frontendURL,
 	}
 }
 
@@ -417,7 +422,7 @@ func (h *SSOHandler) AuthorizeEndpoint(c *gin.Context) {
 		}
 	}
 
-	frontendLoginURL := "http://localhost:3001/login"
+	frontendLoginURL := h.frontendURL + "/login"
 	authParams := map[string]string{
 		"client_id":     clientID,
 		"redirect_uri":  redirectURI,
