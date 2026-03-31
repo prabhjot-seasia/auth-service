@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# Auth Service Setup Script
-# This script sets up the authentication service with configurable parameters
-
 set -e
 
-# Default values
 DEFAULT_DB_HOST="host.docker.internal"
 DEFAULT_DB_PORT="5432"
 DEFAULT_DB_USER="postgres"
@@ -14,13 +10,12 @@ DEFAULT_DB_NAME="auth_service"
 DEFAULT_DB_SSL_MODE="disable"
 DEFAULT_SERVER_PORT="8080"
 DEFAULT_SERVER_HOST="0.0.0.0"
-DEFAULT_FRONTEND_PORT="3001"
+DEFAULT_FRONTEND_PORT="3000"
 DEFAULT_JWT_ACCESS_TTL="15"
 DEFAULT_JWT_REFRESH_TTL="10080"
 DEFAULT_ENVIRONMENT="development"
 DEFAULT_USE_EXTERNAL_DB="false"
 
-# Current values (start with defaults)
 DB_HOST="$DEFAULT_DB_HOST"
 DB_PORT="$DEFAULT_DB_PORT"
 DB_USER="$DEFAULT_DB_USER"
@@ -36,7 +31,6 @@ JWT_REFRESH_TTL="$DEFAULT_JWT_REFRESH_TTL"
 ENVIRONMENT="$DEFAULT_ENVIRONMENT"
 USE_EXTERNAL_DB="$DEFAULT_USE_EXTERNAL_DB"
 
-# Actions
 DO_BUILD=false
 DO_START=false
 DO_STOP=false
@@ -46,7 +40,6 @@ DO_STATUS=false
 DO_CLEAN=false
 DO_INIT_DB=false
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -97,7 +90,7 @@ OPTIONS:
 
     Server Configuration:
     --server-port PORT          Backend server port (default: 8080)
-    --frontend-port PORT        Frontend port (default: 3001)
+    --frontend-port PORT        Frontend port (default: 3000)
 
     JWT Configuration:
     --jwt-secret SECRET         JWT secret key (auto-generated each time if not provided)
@@ -132,7 +125,6 @@ DEFAULT TEST CREDENTIALS:
 EOF
 }
 
-# Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         --db-host) DB_HOST="$2"; shift 2 ;;
@@ -161,7 +153,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Generate backend .env
 generate_env() {
     print_info "Generating backend/.env configuration..."
 
@@ -171,35 +162,25 @@ generate_env() {
     fi
 
     cat > backend/.env << EOF
-# Database Configuration
 DB_HOST=${DB_HOST}
 DB_PORT=${DB_PORT}
 DB_USER=${DB_USER}
 DB_PASSWORD=${DB_PASSWORD}
 DB_NAME=${DB_NAME}
 DB_SSL_MODE=${DB_SSL_MODE}
-
-# Server Configuration
 SERVER_PORT=${SERVER_PORT}
 SERVER_HOST=${SERVER_HOST}
 SERVER_MODE=${ENVIRONMENT}
-
-# JWT Configuration
 JWT_SECRET_KEY=${JWT_SECRET}
 JWT_ACCESS_TOKEN_TTL=${JWT_ACCESS_TTL}
 JWT_REFRESH_TOKEN_TTL=${JWT_REFRESH_TTL}
-
-# Frontend Configuration
 FRONTEND_PORT=${FRONTEND_PORT}
-
-# External Database Flag
 USE_EXTERNAL_DB=${USE_EXTERNAL_DB}
 EOF
 
     print_success "Generated backend/.env"
 }
 
-# Export variables that docker-compose.yml references via ${VAR:-default}
 export_docker_vars() {
     export DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME DB_SSL_MODE
     export SERVER_PORT SERVER_HOST SERVER_MODE="$ENVIRONMENT"
@@ -210,7 +191,6 @@ export_docker_vars() {
     export FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
 }
 
-# Docker compose with profile
 dc() {
     export_docker_vars
     if [[ "$USE_EXTERNAL_DB" == "true" ]]; then
@@ -253,25 +233,21 @@ do_init_db() {
         print_error "psql not found. Install PostgreSQL client to use --init-db"
     fi
 
-    # Resolve host.docker.internal to localhost for host-side psql
     local psql_host="$DB_HOST"
     if [[ "$psql_host" == "host.docker.internal" ]]; then
         psql_host="localhost"
     fi
 
-    # Test connection
     print_info "Testing database connection to ${psql_host}:${DB_PORT}..."
     if ! PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         print_error "Cannot connect to database at ${psql_host}:${DB_PORT} with user ${DB_USER}"
     fi
     print_success "Database connection verified"
 
-    # Create database if it doesn't exist
     print_info "Creating database ${DB_NAME} if it doesn't exist..."
     PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "CREATE DATABASE ${DB_NAME};" 2>/dev/null || true
     print_success "Database ${DB_NAME} ready"
 
-    # Run seed data if available
     if [[ -f "tests/seed-test-data.sql" ]]; then
         print_info "Running seed data script..."
         PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "tests/seed-test-data.sql"
@@ -327,14 +303,12 @@ do_status() {
     dc ps 2>/dev/null || true
     echo ""
 
-    # Check backend health
     if curl -sf "http://localhost:${SERVER_PORT}/health" > /dev/null 2>&1; then
         print_success "Backend is running at http://localhost:${SERVER_PORT}"
     else
         print_warning "Backend is not responding at http://localhost:${SERVER_PORT}"
     fi
 
-    # Check frontend
     if curl -sf "http://localhost:${FRONTEND_PORT}" > /dev/null 2>&1; then
         print_success "Frontend is running at http://localhost:${FRONTEND_PORT}"
     else
@@ -354,7 +328,6 @@ do_clean() {
     print_success "Cleaned up all auth-service resources"
 }
 
-# Execute actions
 if [[ "$DO_BUILD" == "false" && "$DO_START" == "false" && "$DO_STOP" == "false" && \
       "$DO_RESTART" == "false" && "$DO_INIT_DB" == "false" && "$DO_LOGS" == "false" && \
       "$DO_STATUS" == "false" && "$DO_CLEAN" == "false" ]]; then
@@ -369,7 +342,6 @@ validate_config
 [[ "$DO_STOP" == "true" ]] && do_stop
 [[ "$DO_INIT_DB" == "true" ]] && do_init_db
 
-# Auto-init external DB if it doesn't exist
 if [[ "$USE_EXTERNAL_DB" == "true" && "$DO_INIT_DB" == "false" && \
       ("$DO_START" == "true" || "$DO_BUILD" == "true" || "$DO_RESTART" == "true") ]]; then
     if command -v psql >/dev/null 2>&1; then
