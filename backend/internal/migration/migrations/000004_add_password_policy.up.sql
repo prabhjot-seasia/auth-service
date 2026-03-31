@@ -61,7 +61,7 @@ SET password_expires_at = NOW() + INTERVAL '30 days',
     last_password_change = NOW()
 WHERE password_expires_at IS NULL;
 
--- Set force_password_change for all existing users to comply with policy
-UPDATE users 
-SET force_password_change = TRUE
-WHERE force_password_change IS NULL OR force_password_change = FALSE;
+-- Set force_password_change to FALSE for seeded test users
+UPDATE users
+SET force_password_change = FALSE
+WHERE force_password_change IS NULL OR force_password_change = TRUE;

@@ -1,293 +1,151 @@
 # Auth Service Setup Guide
 
-This guide explains how to set up the Auth Service using the provided setup scripts and configuration options.
+Quick reference for setting up the Auth Service. For full documentation, see [README.md](README.md).
 
 ## Quick Start
 
 ### 1. Default Setup (Docker Database)
 ```bash
-# Clone and navigate to the project
-git clone <repository-url>
 cd auth-service
-
-# Run with default Docker database
-./setup.sh --build --start
+./setup.sh --start
 ```
 
 ### 2. External Database Setup
 ```bash
-# Initialize external database (optional)
-./scripts/init-external-db.sh --db-password=mypass
-
-# Start with external database
-./setup.sh --use-external-db --db-host=localhost --db-password=mypass --build --start
+./setup.sh --use-external-db --db-host=localhost --db-password=mypass --init-db --start
 ```
+
+If the database doesn't exist, `--init-db` runs automatically on `--start`.
 
 ### 3. Production Setup
 ```bash
-# Use production configuration
-./setup.sh --config-file config/production.env --environment=production --build --start
+./setup.sh --environment=production --jwt-secret=my-secure-key --start
 ```
 
 ## Setup Script Options
 
-### Database Configuration
-- `--db-host HOST` - Database host (default: postgres)
-- `--db-port PORT` - Database port (default: 5432) 
-- `--db-user USER` - Database username (default: postgres)
-- `--db-password PASSWORD` - Database password (default: postgres)
-- `--db-name NAME` - Database name (default: auth_service)
-- `--db-ssl-mode MODE` - SSL mode (default: disable)
-- `--use-external-db` - Use external database instead of Docker
+### Auth Service Ports
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--auth-backend-port PORT` | 8080 | Auth backend API port |
+| `--auth-frontend-port PORT` | 3000 | Auth frontend UI port |
 
-### Server Configuration
-- `--server-port PORT` - API server port (default: 8080)
-- `--server-host HOST` - Server bind address (default: 0.0.0.0)
-- `--frontend-port PORT` - Frontend port (default: 3001)
+### Database Configuration
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--db-host HOST` | host.docker.internal | Database host |
+| `--db-port PORT` | 5432 | Database connection port |
+| `--db-user USER` | postgres | Database username |
+| `--db-password PASSWORD` | postgres | Database password |
+| `--db-name NAME` | auth_service | Database name |
+| `--db-ssl-mode MODE` | disable | SSL mode |
+| `--use-external-db` | - | Use external database instead of Docker |
+
+### Docker Configuration
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--docker-db-port PORT` | 5433 | PostgreSQL host-side port in Docker mode |
 
 ### JWT Configuration
-- `--jwt-secret SECRET` - JWT secret key (auto-generated if not provided)
-- `--jwt-access-ttl MINUTES` - Access token TTL (default: 15)
-- `--jwt-refresh-ttl MINUTES` - Refresh token TTL (default: 10080)
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--jwt-secret SECRET` | (auto-generated) | JWT secret key (regenerated each time) |
+| `--jwt-access-ttl MIN` | 15 | Access token TTL in minutes |
+| `--jwt-refresh-ttl MIN` | 10080 | Refresh token TTL in minutes |
 
 ### Actions
-- `--build` - Build Docker images
-- `--start` - Start services
-- `--stop` - Stop services
-- `--restart` - Restart services
-- `--status` - Show service status
-- `--logs` - View service logs
-- `--clean` - Clean Docker resources
-
-### Other Options
-- `--environment ENV` - Environment (development/production)
-- `--config-file FILE` - Load configuration from file
-- `--dry-run` - Show what would be done without executing
-- `--verbose` - Verbose output
-- `--help` - Show help
-
-## Configuration Files
-
-### Environment Templates
-- `config/development.env` - Development environment settings
-- `config/production.env` - Production environment settings  
-- `config/external-db.env` - External database configuration
-- `.env.example` - Base environment template
-
-### Docker Compose Files
-- `docker-compose.yml` - Main configuration with environment variables
-- `docker-compose.external-db.yml` - External database override
-- `docker-compose.override.yml` - Auto-generated for external DB
+| Action | Description |
+|--------|-------------|
+| `--build` | Build Docker images only |
+| `--start` | Build and start services |
+| `--stop` | Stop services |
+| `--restart` | Restart services |
+| `--init-db` | Initialize external database (create DB + seed data) |
+| `--status` | Check service status |
+| `--logs` | View service logs |
+| `--clean` | Remove all containers, images, and volumes |
+| `--help` | Show help |
 
 ## Usage Examples
 
-### Development with Docker Database
+### Development
 ```bash
-./setup.sh --build --start
+./setup.sh --start                                              # Start with defaults
+./setup.sh --auth-backend-port 9090 --start                     # Backend on 9090
+./setup.sh --auth-frontend-port 3005 --start                    # Frontend on 3005
+./setup.sh --docker-db-port 5435 --start                        # Docker PostgreSQL on 5435
+./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
+           --docker-db-port 5435 --start                        # All custom ports
 ```
 
-### Development with External Database
+### External Database
 ```bash
-# First, initialize the external database
-./scripts/init-external-db.sh --db-host=localhost --db-password=mypass
-
-# Then start the services
-./setup.sh --use-external-db --db-host=localhost --db-password=mypass --build --start
+./setup.sh --use-external-db --db-host=localhost --db-password=mypass --init-db --start
+./setup.sh --use-external-db --db-port 5433 --start             # Custom DB connection port
 ```
 
-### Production Deployment
+### Production
 ```bash
-# Copy and customize production config
-cp config/production.env config/my-production.env
-# Edit config/my-production.env with your settings
-
-# Deploy
-./setup.sh --config-file config/my-production.env --environment=production --build --start
+./setup.sh \
+  --environment=production \
+  --jwt-secret=super-secure-key \
+  --start
 ```
 
-### Custom Ports
-```bash
-./setup.sh --server-port=9090 --frontend-port=3002 --build --start
-```
-
-### Load from Configuration File
-```bash
-./setup.sh --config-file=./config/development.env --build --start
-```
-
-### Check Service Status
+### Management
 ```bash
 ./setup.sh --status
-```
-
-### View Logs
-```bash
 ./setup.sh --logs
-```
-
-### Restart Services
-```bash
 ./setup.sh --restart
-```
-
-### Clean Everything
-```bash
+./setup.sh --stop
 ./setup.sh --clean
 ```
 
-## External Database Setup
+## Default Ports
 
-### Prerequisites
-- PostgreSQL 12+ server running
-- `psql` client installed
-- Network access to database server
-
-### Initialize External Database
-```bash
-# Basic initialization
-./scripts/init-external-db.sh --db-password=mypass
-
-# Custom host and database name
-./scripts/init-external-db.sh \
-  --db-host=db.example.com \
-  --db-name=my_auth_service \
-  --db-password=mypass
-
-# Force recreate database
-./scripts/init-external-db.sh --db-password=mypass --force-recreate
-
-# Skip seed data
-./scripts/init-external-db.sh --db-password=mypass --skip-seeds
-```
-
-### Connect to External Database
-```bash
-./setup.sh \
-  --use-external-db \
-  --db-host=db.example.com \
-  --db-port=5432 \
-  --db-user=auth_user \
-  --db-password=secure_password \
-  --db-name=auth_service_prod \
-  --db-ssl-mode=require \
-  --build --start
-```
-
-## Environment Variables
-
-All configuration can be set via environment variables:
-
-```bash
-# Database
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_USER=postgres
-export DB_PASSWORD=mypass
-export DB_NAME=auth_service
-export DB_SSL_MODE=disable
-export USE_EXTERNAL_DB=true
-
-# Server
-export SERVER_PORT=8080
-export SERVER_HOST=0.0.0.0
-export SERVER_MODE=development
-export FRONTEND_PORT=3001
-
-# JWT
-export JWT_SECRET_KEY=your-secret-key
-export JWT_ACCESS_TOKEN_TTL=15
-export JWT_REFRESH_TOKEN_TTL=10080
-
-# Then run
-./setup.sh --build --start
-```
+| Service | Port | Flag |
+|---------|------|------|
+| Auth Backend | 8080 | `--auth-backend-port` |
+| Auth Frontend | 3000 | `--auth-frontend-port` |
+| PostgreSQL (Docker) | 5433 | `--docker-db-port` |
+| PostgreSQL (connection) | 5432 | `--db-port` |
 
 ## Docker Profiles
 
-The Docker Compose setup uses profiles to control which services run:
-
-- `docker-db` - PostgreSQL database (default when not using external DB)
-- `nginx` - Nginx reverse proxy (optional)
-
-### Start without Nginx
-```bash
-./setup.sh --build --start
-# or
-docker-compose --profile docker-db up -d
-```
-
-### Start with Nginx
-```bash
-COMPOSE_PROFILES=docker-db,nginx ./setup.sh --build --start
-# or  
-docker-compose --profile docker-db --profile nginx up -d
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Cannot connect to external database**
-- Verify host, port, and credentials
-- Check firewall settings
-- Ensure PostgreSQL accepts connections
-
-**Port already in use**
-- Change ports using `--server-port` or `--frontend-port`
-- Check what's using the port: `lsof -i :8080`
-
-**Permission denied on setup script**
-- Make script executable: `chmod +x setup.sh`
-
-**Docker build fails**
-- Clean Docker cache: `./setup.sh --clean`
-- Check Docker daemon is running
-
-### Debug Commands
-```bash
-# Check service status
-./setup.sh --status
-
-# View logs
-./setup.sh --logs
-
-# Test configuration without running
-./setup.sh --dry-run --build --start
-
-# Verbose output
-./setup.sh --verbose --status
-```
+| Profile | Service | When Used |
+|---------|---------|-----------|
+| `docker-db` | PostgreSQL | Default (when not using external DB) |
+| `nginx` | Nginx reverse proxy | Optional |
 
 ## Default Credentials
 
-After setup, you can access the application with:
-- **URL**: http://localhost:3001 (or your custom frontend port)
-- **Username**: admin
-- **Password**: Admin@123
+| Username | Password | Role |
+|----------|----------|------|
+| admin | Admin@123 | Super Admin (full access) |
+| group_admin | Admin@123 | Group administrator |
+| role_admin | Admin@123 | Role administrator |
+| user_admin | Admin@123 | User administrator |
+| service_admin | Admin@123 | Service administrator |
+| doc_admin | Admin@123 | Document admin (read + write) |
+| doc_reader | Admin@123 | Document reader (read only) |
+
+**Warning**: Change all default passwords in production!
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Port in use | `./setup.sh --auth-backend-port 9090 --start` |
+| DB connection failed | `./setup.sh --use-external-db --init-db` |
+| Docker issues | `./setup.sh --clean` then `./setup.sh --start` |
+| Permission denied | `chmod +x setup.sh` |
+| Check status | `./setup.sh --status` |
+| View logs | `./setup.sh --logs` |
 
 ## Security Notes
 
-### Production Deployment
-1. **Change default passwords** in production
-2. **Set strong JWT secret** (minimum 64 characters)
-3. **Use HTTPS** for all communications
-4. **Enable SSL** for database connections
-5. **Restrict network access** to database
-6. **Use environment variables** for secrets
-7. **Regular backups** of database
-8. **Monitor logs** for security events
-
-### Environment Variables in Production
-Never commit secrets to version control. Use:
-- Environment variables
-- Docker secrets
-- Kubernetes secrets
-- External secret management systems
-
-## Next Steps
-
-1. Access the application at the configured URL
-2. Login with default credentials
-3. Check the **API Documentation** tab for SSO integration guide
-4. Register your first service for SSO integration
-5. Configure users, roles, and groups as needed
+1. JWT secret is **regenerated on every deployment** unless explicitly provided via `--jwt-secret`
+2. Change default passwords in production
+3. Use `--db-ssl-mode=require` for production database connections
+4. Use HTTPS in production
+5. Never commit secrets to version control

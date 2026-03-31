@@ -35,5 +35,13 @@ module.exports = {
     format: ['pretty'],
     tags: '@browser',
     timeout: 45000
+  },
+  sso: {
+    require: [
+      'step-definitions/**/*.js'
+    ],
+    format: ['pretty'],
+    tags: '@sso and @navigation',
+    timeout: 60000
   }
 };

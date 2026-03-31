@@ -255,6 +255,23 @@
   color: #a0aec0;
 }
 
+.dropdown-service-link.disabled.current {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.service-current-badge {
+  font-size: 10px;
+  padding: 0.15rem 0.5rem;
+  background: #e2e8f0;
+  color: #718096;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
 .dropdown-logout {
   width: 100%;
   display: flex;

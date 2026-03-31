@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../provider/authProvider';
@@ -181,7 +182,7 @@ const GroupManagement: React.FC = () => {
 
   const fetchGroups = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/groups', {
+      const response = await axios.get(API_URL + '/groups', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setGroups(Array.isArray(response.data) ? response.data : []);
@@ -194,7 +195,7 @@ const GroupManagement: React.FC = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/services', {
+      const response = await axios.get(API_URL + '/services', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setServices(Array.isArray(response.data) ? response.data : []);
@@ -207,7 +208,7 @@ const GroupManagement: React.FC = () => {
 
   const fetchGroupServices = async (groupId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/groups/${groupId}/services`, {
+      const response = await axios.get(`${API_URL}/groups/${groupId}/services`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const groupServices = Array.isArray(response.data) ? response.data : [];
@@ -226,7 +227,7 @@ const GroupManagement: React.FC = () => {
 
   const fetchGroupPermissions = async (groupId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/groups/${groupId}/services`, {
+      const response = await axios.get(`${API_URL}/groups/${groupId}/services`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const groupServices = Array.isArray(response.data) ? response.data : [];
@@ -316,7 +317,7 @@ const GroupManagement: React.FC = () => {
       type: 'danger',
       onConfirm: async () => {
         try {
-          await axios.delete(`http://localhost:8080/groups/${group.id}`, {
+          await axios.delete(`${API_URL}/groups/${group.id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           
@@ -386,7 +387,7 @@ const GroupManagement: React.FC = () => {
     if (editingGroup && wizardStep === 1) {
       setSubmitting(true);
       try {
-        await axios.put(`http://localhost:8080/groups/${editingGroup.id}`, formData, {
+        await axios.put(`${API_URL}/groups/${editingGroup.id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         showNotification('Group updated successfully', 'success');
@@ -410,14 +411,14 @@ const GroupManagement: React.FC = () => {
     if (wizardStep === 2) {
       setSubmitting(true);
       try {
-        const groupResponse = await axios.post('http://localhost:8080/groups', formData, {
+        const groupResponse = await axios.post(API_URL + '/groups', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         const newGroupId = groupResponse.data.id;
 
         if (serviceAssignments.length > 0) {
-          await axios.put(`http://localhost:8080/groups/${newGroupId}/services`, {
+          await axios.put(`${API_URL}/groups/${newGroupId}/services`, {
             services: serviceAssignments
           }, {
             headers: { Authorization: `Bearer ${token}` }
@@ -451,7 +452,7 @@ const GroupManagement: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await axios.put(`http://localhost:8080/groups/${managingGroupId}/services`, {
+      await axios.put(`${API_URL}/groups/${managingGroupId}/services`, {
         services: serviceAssignments
       }, {
         headers: { Authorization: `Bearer ${token}` }

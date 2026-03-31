@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -70,7 +71,7 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({ children
         return;
       }
 
-      const response = await axios.get('http://localhost:8080/me/permissions', {
+      const response = await axios.get(API_URL + '/me/permissions', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -113,7 +114,7 @@ export const PermissionProvider: React.FC<PermissionProviderProps> = ({ children
       if (!token) return false;
 
       const response = await axios.get(
-        `http://localhost:8080/me/check-permission?action=${action}&resource=${resource}`,
+        `${API_URL}/me/check-permission?action=${action}&resource=${resource}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

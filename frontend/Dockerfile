@@ -54,7 +54,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
 COPY . .
 
-# Build production bundle
+ARG REACT_APP_API_URL
 RUN npm run build
 
 # =============================================================================

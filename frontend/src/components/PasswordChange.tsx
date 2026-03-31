@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -58,7 +59,7 @@ export const PasswordChange: React.FC = () => {
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:8080/auth/change-password', {
+      await axios.post(API_URL + '/auth/change-password', {
         current_password: currentPassword,
         new_password: newPassword
       });

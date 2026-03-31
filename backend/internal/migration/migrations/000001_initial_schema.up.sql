@@ -13,6 +13,7 @@ CREATE TABLE users (
     first_name text,
     last_name text,
     is_active boolean DEFAULT true,
+    role_id uuid,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     deleted_at timestamp with time zone
@@ -169,5 +170,7 @@ ALTER TABLE ONLY role_permissions ADD CONSTRAINT fk_role_permissions_permission 
 
 ALTER TABLE ONLY group_services ADD CONSTRAINT group_services_group_id_fkey FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE;
 ALTER TABLE ONLY group_services ADD CONSTRAINT group_services_service_id_fkey FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY users ADD CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY tokens ADD CONSTRAINT tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

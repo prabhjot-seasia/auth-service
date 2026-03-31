@@ -9,6 +9,7 @@ import { ApiDocumentation } from './ApiDocumentation';
 import axios from 'axios';
 import seasiaLogo from '../assets/seasia-logo.svg';
 import './Dashboard.css';
+import { API_URL } from '../config';
 
 interface Service {
   id: string;
@@ -29,29 +30,22 @@ export const Dashboard: React.FC = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   useEffect(() => {
-    // Only fetch services if user has permission to read services
-    if (effectivePermissions?.some(perm => perm.resource === 'services' && perm.action === 'read')) {
-      fetchData();
-    }
-  }, [effectivePermissions]);
+    fetchUserServices();
+  }, []);
 
-  const fetchData = async () => {
+  const fetchUserServices = async () => {
     try {
       const token = localStorage.getItem('jwt');
       if (!token) {
         console.error('No JWT token found');
         return;
       }
-      const response = await axios.get('http://localhost:8080/services', {
+      const response = await axios.get(`${API_URL}/me/services`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setServices(response.data);
+      setServices(response.data.services || response.data);
     } catch (err: any) {
       console.error('Failed to fetch services:', err);
-      // If we get 401, the token might be expired - the user needs to re-login
-      if (err.response?.status === 401) {
-        console.error('Services request failed with 401 - token may be expired');
-      }
     }
   };
 
@@ -62,19 +56,17 @@ export const Dashboard: React.FC = () => {
 
   const getUserAllowedServices = () => {
     if (!services || services.length === 0) return [];
-    if (!effectivePermissions) return [];
-    
-    // Filter services based on user's permissions and active status
     return services.filter(service => {
-      // Only show active services
       if (!service.is_active) return false;
-      
-      // Check if user has any permission that matches the service's scopes
-      const scopes = service.scopes.split(' ');
+      // Show service only if user has at least one permission matching service scopes
+      if (!effectivePermissions || effectivePermissions.length === 0) return false;
+      const scopes = (service.scopes || '').split(' ').filter(Boolean);
       return scopes.some(scope => {
-        const [resource, action] = scope.split(':');
-        return effectivePermissions.some((perm: any) => 
-          perm.resource === resource && perm.action === action
+        const parts = scope.split(':');
+        if (parts.length !== 2) return false;
+        const [resource, action] = parts;
+        return effectivePermissions.some(
+          (p: any) => p.resource === resource && p.action === action
         );
       });
     });
@@ -181,29 +173,43 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
                 
-                {getUserAllowedServices().length > 0 && (
+                {!permissionsLoading && getUserAllowedServices().length > 0 && (
                   <>
                     <div className="dropdown-divider" />
                     <div className="dropdown-services">
                       <div className="dropdown-section-title">Services</div>
                       {getUserAllowedServices().map(service => {
-                        // If service has a redirect_uri, make it clickable with SSO
+                        const isCurrentApp = service.client_id === 'auth-service-client';
+
+                        // Current app: show as disabled with "current" badge
+                        if (isCurrentApp) {
+                          return (
+                            <div
+                              key={service.id}
+                              className="dropdown-service-link disabled current"
+                            >
+                              <span className="service-icon">⚡</span>
+                              <span className="service-name">{service.name}</span>
+                              <span className="service-current-badge">current</span>
+                            </div>
+                          );
+                        }
+
+                        // Other services with redirect_uri: make clickable with SSO
                         if (service.redirect_uri) {
-                          // Build simplified SSO authorize URL with token
-                          const ssoUrl = new URL('http://localhost:8080/sso/login');
+                          const ssoUrl = new URL(`${API_URL}/sso/login`);
                           ssoUrl.searchParams.append('client_id', service.client_id);
                           ssoUrl.searchParams.append('redirect_uri', service.redirect_uri);
                           ssoUrl.searchParams.append('response_type', 'code');
                           ssoUrl.searchParams.append('scope', service.scopes || 'openid');
-                          
-                          // Get JWT token from localStorage and add it to the URL
+
                           const token = localStorage.getItem('jwt');
                           if (token) {
                             ssoUrl.searchParams.append('token', token);
                           }
-                          
+
                           return (
-                            <a 
+                            <a
                               key={service.id}
                               href={ssoUrl.toString()}
                               target="_blank"
@@ -217,9 +223,9 @@ export const Dashboard: React.FC = () => {
                             </a>
                           );
                         }
-                        // If no redirect_uri, show as disabled
+                        // No redirect_uri: show as disabled
                         return (
-                          <div 
+                          <div
                             key={service.id}
                             className="dropdown-service-link disabled"
                             title="No URL configured for this service"

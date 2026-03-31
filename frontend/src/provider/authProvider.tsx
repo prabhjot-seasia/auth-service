@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 interface PasswordStatus {
   force_change: boolean;
@@ -19,7 +20,6 @@ interface AuthContextType {
   token: string | null;
   login: (username: string, password: string) => Promise<LoginResponse>;
   initiateLogin: () => void;
-  handleCallback: (code: string, state: string) => Promise<LoginResponse>;
   logout: () => void;
   refreshToken: () => Promise<void>;
   user: any;
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserPermissions = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/me/permissions');
+      const response = await axios.get(`${API_URL}/me/permissions`);
       setUser(response.data);
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string): Promise<LoginResponse> => {
     try {
-      const loginResponse = await axios.post('http://localhost:8080/auth/login', {
+      const loginResponse = await axios.post(`${API_URL}/auth/login`, {
         username,
         password,
       });
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         tokenRequestData.redirect_uri = currentParams.get('redirect_uri') || `${window.location.origin}/auth/callback`;
       }
 
-      const tokenResponse = await axios.post('http://localhost:8080/auth/token', tokenRequestData);
+      const tokenResponse = await axios.post(`${API_URL}/auth/token`, tokenRequestData);
 
       const { access_token, refresh_token } = tokenResponse.data;
 
@@ -163,60 +163,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       code_challenge_method: 'S256'
     });
 
-    window.location.href = `http://localhost:8080/sso/login?${params}`;
-  };
-
-  const handleCallback = async (code: string, state: string): Promise<LoginResponse> => {
-    try {
-      const storedState = localStorage.getItem('oauth_state');
-      const codeVerifier = localStorage.getItem('code_verifier');
-
-      if (state !== storedState) {
-        throw new Error('Invalid state parameter');
-      }
-
-      const response = await axios.post('http://localhost:8080/auth/token', {
-        grant_type: 'authorization_code',
-        code: code,
-        client_id: process.env.REACT_APP_CLIENT_ID || 'auth-service-client',
-        redirect_uri: process.env.REACT_APP_REDIRECT_URI || `${window.location.origin}/auth/callback`,
-        code_verifier: codeVerifier
-      });
-
-      const { access_token, refresh_token } = response.data;
-
-      localStorage.setItem('jwt', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      localStorage.removeItem('oauth_state');
-      localStorage.removeItem('code_verifier');
-
-      setToken(access_token);
-      setRefreshTokenValue(refresh_token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      window.dispatchEvent(new Event('auth-login'));
-      await fetchUserPermissions();
-
-      return { success: true };
-    } catch {
-      localStorage.removeItem('jwt');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('oauth_state');
-      localStorage.removeItem('code_verifier');
-      setToken(null);
-      setRefreshTokenValue(null);
-      delete axios.defaults.headers.common['Authorization'];
-      return { success: false };
-    }
+    window.location.href = `${API_URL}/sso/login?${params}`;
   };
 
   const logout = async () => {
     try {
       const currentToken = localStorage.getItem('jwt');
       if (currentToken) {
-        await axios.post('http://localhost:8080/sso/logout', { token: currentToken });
+        await axios.post(`${API_URL}/sso/logout`, { token: currentToken });
       }
     } catch {
-      // Proceed with local logout even if SSO logout fails
     } finally {
       localStorage.removeItem('jwt');
       localStorage.removeItem('refresh_token');
@@ -233,7 +189,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/auth/token', {
+      const response = await axios.post(`${API_URL}/auth/token`, {
         grant_type: 'refresh_token',
         refresh_token: refreshTokenValue,
       });
@@ -297,7 +253,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, initiateLogin, handleCallback, logout, refreshToken, user }}>
+    <AuthContext.Provider value={{ token, login, initiateLogin, logout, refreshToken, user }}>
       {children}
     </AuthContext.Provider>
   );

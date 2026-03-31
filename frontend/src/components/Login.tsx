@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../provider/authProvider';
@@ -37,7 +38,7 @@ export const Login: React.FC = () => {
           const token = localStorage.getItem('jwt') || result.token;
 
           if (token) {
-            const ssoUrl = `http://localhost:8080/sso/login?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}${state ? `&state=${encodeURIComponent(state)}` : ''}&token=${encodeURIComponent(token)}`;
+            const ssoUrl = `${API_URL}/sso/login?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}${state ? `&state=${encodeURIComponent(state)}` : ''}&token=${encodeURIComponent(token)}`;
             window.location.replace(ssoUrl);
             return;
           }

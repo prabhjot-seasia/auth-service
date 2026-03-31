@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../provider/authProvider';
@@ -181,7 +182,7 @@ const RoleManagement: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/roles', {
+      const response = await axios.get(API_URL + '/roles', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const rolesData = Array.isArray(response.data) ? response.data : [];
@@ -195,7 +196,7 @@ const RoleManagement: React.FC = () => {
 
   const fetchGroups = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/groups', {
+      const response = await axios.get(API_URL + '/groups', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setGroups(Array.isArray(response.data) ? response.data : []);
@@ -208,7 +209,7 @@ const RoleManagement: React.FC = () => {
 
   const fetchRoleGroups = async (roleId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/roles/${roleId}/groups`, {
+      const response = await axios.get(`${API_URL}/roles/${roleId}/groups`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const roleGroups = Array.isArray(response.data) ? response.data : [];
@@ -260,7 +261,7 @@ const RoleManagement: React.FC = () => {
       onConfirm: async () => {
         setSubmitting(true);
         try {
-          await axios.delete(`http://localhost:8080/roles/${role.id}`, {
+          await axios.delete(`${API_URL}/roles/${role.id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           showNotification('Role deleted successfully', 'success');
@@ -370,19 +371,19 @@ const RoleManagement: React.FC = () => {
       let roleId: string;
 
       if (editingRole) {
-        await axios.put(`http://localhost:8080/roles/${editingRole.id}`, roleData, {
+        await axios.put(`${API_URL}/roles/${editingRole.id}`, roleData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         roleId = editingRole.id;
         showNotification('Role updated successfully', 'success');
       } else {
-        const response = await axios.post('http://localhost:8080/roles', roleData, {
+        const response = await axios.post(API_URL + '/roles', roleData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         roleId = response.data.id;
 
         if (selectedGroups.length > 0) {
-          await axios.put(`http://localhost:8080/roles/${roleId}/groups`, {
+          await axios.put(`${API_URL}/roles/${roleId}/groups`, {
             group_ids: selectedGroups
           }, {
             headers: { Authorization: `Bearer ${token}` }
@@ -412,7 +413,7 @@ const RoleManagement: React.FC = () => {
 
     setSubmitting(true);
     try {
-      await axios.put(`http://localhost:8080/roles/${managingRoleId}/groups`, {
+      await axios.put(`${API_URL}/roles/${managingRoleId}/groups`, {
         group_ids: selectedGroups
       }, {
         headers: { Authorization: `Bearer ${token}` }

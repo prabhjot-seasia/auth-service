@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../provider/authProvider';
@@ -165,7 +166,7 @@ const ServiceManagement: React.FC = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/services', {
+      const response = await axios.get(API_URL + '/services', {
         headers: { Authorization: `Bearer ${token}` }
       });
       // Ensure we always set an array
@@ -225,7 +226,7 @@ const ServiceManagement: React.FC = () => {
       type: 'warning',
       onConfirm: async () => {
         try {
-          const response = await axios.post(`http://localhost:8080/services/${service.id}/regenerate-secret`, {}, {
+          const response = await axios.post(`${API_URL}/services/${service.id}/regenerate-secret`, {}, {
             headers: { Authorization: `Bearer ${token}` }
           });
           
@@ -255,7 +256,7 @@ const ServiceManagement: React.FC = () => {
       type: service.is_active ? 'warning' : 'info',
       onConfirm: async () => {
         try {
-          await axios.put(`http://localhost:8080/services/${service.id}`, {
+          await axios.put(`${API_URL}/services/${service.id}`, {
             is_active: !service.is_active
           }, {
             headers: { Authorization: `Bearer ${token}` }
@@ -281,7 +282,7 @@ const ServiceManagement: React.FC = () => {
       type: 'danger',
       onConfirm: async () => {
         try {
-          await axios.delete(`http://localhost:8080/services/${service.id}`, {
+          await axios.delete(`${API_URL}/services/${service.id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           
@@ -337,14 +338,14 @@ const ServiceManagement: React.FC = () => {
 
     try {
       if (editingService) {
-        await axios.put(`http://localhost:8080/services/${editingService.id}`, formData, {
+        await axios.put(`${API_URL}/services/${editingService.id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         showNotification('Service updated successfully', 'success');
         setShowModal(false);
         resetForm();
       } else {
-        const response = await axios.post('http://localhost:8080/services', formData, {
+        const response = await axios.post(API_URL + '/services', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
