@@ -121,8 +121,8 @@ If the external database doesn't exist, `--init-db` runs automatically on `--sta
 #### Custom Configuration
 ```bash
 ./setup.sh \
-  --server-port=9090 \
-  --frontend-port=3002 \
+  --auth-backend-port 9090 \
+  --auth-frontend-port 3005 \
   --jwt-secret=my-secret-key \
   --start
 ```
@@ -190,12 +190,17 @@ npm start
 | `--db-ssl-mode MODE` | disable | SSL mode (disable/require/verify-full) |
 | `--use-external-db` | false | Use external database instead of Docker |
 
-### Server Options
+### Auth Service Ports
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--server-port PORT` | 8080 | Backend API port |
-| `--frontend-port PORT` | 3001 | Frontend port |
+| `--auth-backend-port PORT` | 8080 | Auth backend API port |
+| `--auth-frontend-port PORT` | 3000 | Auth frontend UI port |
 | `--environment ENV` | development | Environment (development/production) |
+
+### Docker Configuration
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--docker-db-port PORT` | 5433 | PostgreSQL host-side port in Docker mode |
 
 ### JWT Options
 | Option | Default | Description |
@@ -203,16 +208,6 @@ npm start
 | `--jwt-secret SECRET` | (auto-generated) | JWT secret key (regenerated each time if not provided) |
 | `--jwt-access-ttl MIN` | 15 | Access token TTL in minutes |
 | `--jwt-refresh-ttl MIN` | 10080 | Refresh token TTL in minutes |
-
-### Logging Options
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--log-level` | info | Log level (debug/info/warn/error) |
-| `--log-file` | stdout | Log file path |
-| `--log-format` | json | Format (json/text) |
-| `--log-max-size` | 100 | Max file size in MB before rotation |
-| `--log-max-backups` | 5 | Number of backup files to keep |
-| `--log-max-age` | 30 | Max age of log files in days |
 
 ### Actions
 | Action | Description |
@@ -231,20 +226,24 @@ npm start
 ```bash
 # Development
 ./setup.sh --start
-./setup.sh --log-level debug --log-format text --start
 
 # External database
 ./setup.sh --use-external-db --db-host=localhost --init-db --start
 
-# Custom ports
-./setup.sh --server-port=9090 --frontend-port=3002 --start
+# Port changes
+./setup.sh --auth-backend-port 9090 --start              # Backend on 9090
+./setup.sh --auth-frontend-port 3005 --start             # Frontend on 3005
+./setup.sh --docker-db-port 5435 --start                 # Docker PostgreSQL on 5435
+./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
+           --docker-db-port 5435 --start                 # All custom ports
 
-# Production with file logging
+# External database with custom port
+./setup.sh --use-external-db --db-port 5433 --start
+
+# Production
 ./setup.sh \
   --environment=production \
   --jwt-secret=super-secure-key \
-  --log-level info \
-  --log-file /var/log/auth-service/auth-service.log \
   --start
 
 # Management
@@ -601,7 +600,7 @@ After setup, the following test users are available:
 ### Port Already in Use
 ```bash
 lsof -i :8080
-./setup.sh --server-port=9090 --frontend-port=3002 --start
+./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 --start
 ```
 
 ### Database Connection Failed

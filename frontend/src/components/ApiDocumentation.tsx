@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState } from 'react';
 import './ApiDocumentation.css';
 
@@ -46,7 +47,7 @@ export const ApiDocumentation: React.FC = () => {
     setResponse(null);
 
     try {
-      const baseUrl = 'http://localhost:8080';
+      const baseUrl = API_URL + '';
       let url = baseUrl + endpoint.path;
 
       const pathParams = endpoint.parameters?.filter(p => p.in === 'path') || [];

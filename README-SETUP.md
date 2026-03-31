@@ -24,23 +24,27 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 
 ## Setup Script Options
 
+### Auth Service Ports
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--auth-backend-port PORT` | 8080 | Auth backend API port |
+| `--auth-frontend-port PORT` | 3000 | Auth frontend UI port |
+
 ### Database Configuration
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--db-host HOST` | host.docker.internal | Database host |
-| `--db-port PORT` | 5432 | Database port |
+| `--db-port PORT` | 5432 | Database connection port |
 | `--db-user USER` | postgres | Database username |
 | `--db-password PASSWORD` | postgres | Database password |
 | `--db-name NAME` | auth_service | Database name |
 | `--db-ssl-mode MODE` | disable | SSL mode |
 | `--use-external-db` | - | Use external database instead of Docker |
 
-### Server Configuration
+### Docker Configuration
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--server-port PORT` | 8080 | Backend API port |
-| `--frontend-port PORT` | 3001 | Frontend port |
-| `--environment ENV` | development | Environment (development/production) |
+| `--docker-db-port PORT` | 5433 | PostgreSQL host-side port in Docker mode |
 
 ### JWT Configuration
 | Option | Default | Description |
@@ -48,16 +52,6 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 | `--jwt-secret SECRET` | (auto-generated) | JWT secret key (regenerated each time) |
 | `--jwt-access-ttl MIN` | 15 | Access token TTL in minutes |
 | `--jwt-refresh-ttl MIN` | 10080 | Refresh token TTL in minutes |
-
-### Logging Configuration
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--log-level LEVEL` | info | debug/info/warn/error |
-| `--log-file PATH` | stdout | Log file path |
-| `--log-format FORMAT` | json | json/text |
-| `--log-max-size MB` | 100 | Max file size before rotation |
-| `--log-max-backups N` | 5 | Backup files to keep |
-| `--log-max-age DAYS` | 30 | Max age of log files |
 
 ### Actions
 | Action | Description |
@@ -76,18 +70,18 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 
 ### Development
 ```bash
-./setup.sh --start
-./setup.sh --log-level debug --start
-./setup.sh --server-port=9090 --frontend-port=3002 --start
+./setup.sh --start                                              # Start with defaults
+./setup.sh --auth-backend-port 9090 --start                     # Backend on 9090
+./setup.sh --auth-frontend-port 3005 --start                    # Frontend on 3005
+./setup.sh --docker-db-port 5435 --start                        # Docker PostgreSQL on 5435
+./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
+           --docker-db-port 5435 --start                        # All custom ports
 ```
 
 ### External Database
 ```bash
-# Initialize and start
 ./setup.sh --use-external-db --db-host=localhost --db-password=mypass --init-db --start
-
-# DB auto-created if missing
-./setup.sh --use-external-db --db-host=localhost --db-password=mypass --start
+./setup.sh --use-external-db --db-port 5433 --start             # Custom DB connection port
 ```
 
 ### Production
@@ -95,19 +89,26 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 ./setup.sh \
   --environment=production \
   --jwt-secret=super-secure-key \
-  --log-level info \
-  --log-file /var/log/auth-service/auth-service.log \
   --start
 ```
 
 ### Management
 ```bash
-./setup.sh --status      # Check service health
-./setup.sh --logs        # View logs
-./setup.sh --restart     # Restart services
-./setup.sh --stop        # Stop services
-./setup.sh --clean       # Remove everything
+./setup.sh --status
+./setup.sh --logs
+./setup.sh --restart
+./setup.sh --stop
+./setup.sh --clean
 ```
+
+## Default Ports
+
+| Service | Port | Flag |
+|---------|------|------|
+| Auth Backend | 8080 | `--auth-backend-port` |
+| Auth Frontend | 3000 | `--auth-frontend-port` |
+| PostgreSQL (Docker) | 5433 | `--docker-db-port` |
+| PostgreSQL (connection) | 5432 | `--db-port` |
 
 ## Docker Profiles
 
@@ -115,11 +116,6 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 |---------|---------|-----------|
 | `docker-db` | PostgreSQL | Default (when not using external DB) |
 | `nginx` | Nginx reverse proxy | Optional |
-
-```bash
-# With Nginx
-COMPOSE_PROFILES=docker-db,nginx ./setup.sh --start
-```
 
 ## Default Credentials
 
@@ -139,7 +135,7 @@ COMPOSE_PROFILES=docker-db,nginx ./setup.sh --start
 
 | Issue | Solution |
 |-------|----------|
-| Port in use | `./setup.sh --server-port=9090 --start` |
+| Port in use | `./setup.sh --auth-backend-port 9090 --start` |
 | DB connection failed | `./setup.sh --use-external-db --init-db` |
 | Docker issues | `./setup.sh --clean` then `./setup.sh --start` |
 | Permission denied | `chmod +x setup.sh` |

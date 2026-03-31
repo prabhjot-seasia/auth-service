@@ -8,10 +8,10 @@ DEFAULT_DB_USER="postgres"
 DEFAULT_DB_PASSWORD="postgres"
 DEFAULT_DB_NAME="auth_service"
 DEFAULT_DB_SSL_MODE="disable"
-DEFAULT_DB_PORT_EXTERNAL="5433"
-DEFAULT_SERVER_PORT="8080"
-DEFAULT_SERVER_HOST="0.0.0.0"
-DEFAULT_FRONTEND_PORT="3000"
+DEFAULT_DOCKER_DB_PORT="5433"
+DEFAULT_AUTH_BACKEND_PORT="8080"
+DEFAULT_AUTH_BACKEND_HOST="0.0.0.0"
+DEFAULT_AUTH_FRONTEND_PORT="3000"
 DEFAULT_JWT_ACCESS_TTL="15"
 DEFAULT_JWT_REFRESH_TTL="10080"
 DEFAULT_ENVIRONMENT="development"
@@ -23,10 +23,10 @@ DB_USER="$DEFAULT_DB_USER"
 DB_PASSWORD="$DEFAULT_DB_PASSWORD"
 DB_NAME="$DEFAULT_DB_NAME"
 DB_SSL_MODE="$DEFAULT_DB_SSL_MODE"
-DB_PORT_EXTERNAL="$DEFAULT_DB_PORT_EXTERNAL"
-SERVER_PORT="$DEFAULT_SERVER_PORT"
-SERVER_HOST="$DEFAULT_SERVER_HOST"
-FRONTEND_PORT="$DEFAULT_FRONTEND_PORT"
+DB_PORT_EXTERNAL="$DEFAULT_DOCKER_DB_PORT"
+SERVER_PORT="$DEFAULT_AUTH_BACKEND_PORT"
+SERVER_HOST="$DEFAULT_AUTH_BACKEND_HOST"
+FRONTEND_PORT="$DEFAULT_AUTH_FRONTEND_PORT"
 JWT_SECRET=""
 JWT_ACCESS_TTL="$DEFAULT_JWT_ACCESS_TTL"
 JWT_REFRESH_TTL="$DEFAULT_JWT_REFRESH_TTL"
@@ -81,19 +81,21 @@ USAGE:
     ./setup.sh [OPTIONS]
 
 OPTIONS:
+    Auth Service Ports:
+    --auth-backend-port PORT    Auth backend API port (default: 8080)
+    --auth-frontend-port PORT   Auth frontend UI port (default: 3000)
+
     Database Configuration:
     --db-host HOST              Database host (default: host.docker.internal)
-    --db-port PORT              Database port (default: 5432)
+    --db-port PORT              Database connection port (default: 5432)
     --db-user USER              Database username (default: postgres)
     --db-password PASSWORD      Database password (default: postgres)
     --db-name NAME              Database name (default: auth_service)
     --db-ssl-mode MODE          Database SSL mode (default: disable)
-    --db-port-external PORT     PostgreSQL host-side port for Docker DB (default: 5433)
     --use-external-db           Use external database instead of Docker
 
-    Server Configuration:
-    --server-port PORT          Backend server port (default: 8080)
-    --frontend-port PORT        Frontend port (default: 3000)
+    Docker Configuration:
+    --docker-db-port PORT       PostgreSQL host-side port in Docker mode (default: 5433)
 
     JWT Configuration:
     --jwt-secret SECRET         JWT secret key (auto-generated each time if not provided)
@@ -115,12 +117,30 @@ OPTIONS:
 
     --help                      Show this help message
 
+DEFAULT PORTS:
+    Auth Backend:               8080    (--auth-backend-port)
+    Auth Frontend:              3000    (--auth-frontend-port)
+    PostgreSQL (Docker):        5433    (--docker-db-port)
+    PostgreSQL (connection):    5432    (--db-port)
+
 EXAMPLES:
-    ./setup.sh --start
-    ./setup.sh --build --start
-    ./setup.sh --status
+    ./setup.sh --start                                                  # Start with defaults
+    ./setup.sh --build --start                                          # Force rebuild
+    ./setup.sh --status                                                 # Check health
+
+    # Port changes
+    ./setup.sh --auth-backend-port 9090 --start                         # Backend on 9090
+    ./setup.sh --auth-frontend-port 3005 --start                        # Frontend on 3005
+    ./setup.sh --docker-db-port 5435 --start                            # Docker PostgreSQL on 5435
+    ./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
+               --docker-db-port 5435 --start                            # All custom ports
+
+    # External database
     ./setup.sh --use-external-db --db-host localhost --init-db --start
-    ./setup.sh --jwt-secret=mysecret --start
+    ./setup.sh --use-external-db --db-port 5433 --start                 # Custom DB port
+
+    # Production
+    ./setup.sh --jwt-secret=mysecret --environment production --start
 
 DEFAULT TEST CREDENTIALS:
     admin / Admin@123           (super_admin role)
@@ -130,16 +150,16 @@ EOF
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --auth-backend-port) SERVER_PORT="$2"; shift 2 ;;
+        --auth-frontend-port) FRONTEND_PORT="$2"; shift 2 ;;
         --db-host) DB_HOST="$2"; shift 2 ;;
         --db-port) DB_PORT="$2"; shift 2 ;;
         --db-user) DB_USER="$2"; shift 2 ;;
         --db-password) DB_PASSWORD="$2"; shift 2 ;;
         --db-name) DB_NAME="$2"; shift 2 ;;
         --db-ssl-mode) DB_SSL_MODE="$2"; shift 2 ;;
-        --db-port-external) DB_PORT_EXTERNAL="$2"; shift 2 ;;
+        --docker-db-port) DB_PORT_EXTERNAL="$2"; shift 2 ;;
         --use-external-db) USE_EXTERNAL_DB="true"; shift ;;
-        --server-port) SERVER_PORT="$2"; shift 2 ;;
-        --frontend-port) FRONTEND_PORT="$2"; shift 2 ;;
         --jwt-secret) JWT_SECRET="$2"; shift 2 ;;
         --jwt-access-ttl) JWT_ACCESS_TTL="$2"; shift 2 ;;
         --jwt-refresh-ttl) JWT_REFRESH_TTL="$2"; shift 2 ;;
@@ -208,15 +228,19 @@ validate_config() {
     print_info "Validating configuration..."
 
     if ! [[ "$SERVER_PORT" =~ ^[0-9]+$ ]] || [ "$SERVER_PORT" -lt 1 ] || [ "$SERVER_PORT" -gt 65535 ]; then
-        print_error "Invalid server port: $SERVER_PORT"
+        print_error "Invalid auth backend port: $SERVER_PORT"
     fi
 
     if ! [[ "$FRONTEND_PORT" =~ ^[0-9]+$ ]] || [ "$FRONTEND_PORT" -lt 1 ] || [ "$FRONTEND_PORT" -gt 65535 ]; then
-        print_error "Invalid frontend port: $FRONTEND_PORT"
+        print_error "Invalid auth frontend port: $FRONTEND_PORT"
     fi
 
     if ! [[ "$DB_PORT" =~ ^[0-9]+$ ]] || [ "$DB_PORT" -lt 1 ] || [ "$DB_PORT" -gt 65535 ]; then
         print_error "Invalid database port: $DB_PORT"
+    fi
+
+    if ! [[ "$DB_PORT_EXTERNAL" =~ ^[0-9]+$ ]] || [ "$DB_PORT_EXTERNAL" -lt 1 ] || [ "$DB_PORT_EXTERNAL" -gt 65535 ]; then
+        print_error "Invalid docker db port: $DB_PORT_EXTERNAL"
     fi
 
     if ! [[ "$JWT_ACCESS_TTL" =~ ^[0-9]+$ ]] || [ "$JWT_ACCESS_TTL" -lt 1 ]; then
@@ -277,8 +301,8 @@ do_start() {
     dc up -d --build
 
     print_success "Services started"
-    print_info "Backend API:  http://localhost:${SERVER_PORT}"
-    print_info "Frontend:     http://localhost:${FRONTEND_PORT}"
+    print_info "Auth Backend:   http://localhost:${SERVER_PORT}"
+    print_info "Auth Frontend:  http://localhost:${FRONTEND_PORT}"
     echo ""
     print_info "Test credentials:"
     echo "  admin        / Admin@123  (super_admin)"
@@ -308,15 +332,15 @@ do_status() {
     echo ""
 
     if curl -sf "http://localhost:${SERVER_PORT}/health" > /dev/null 2>&1; then
-        print_success "Backend is running at http://localhost:${SERVER_PORT}"
+        print_success "Auth Backend is running at http://localhost:${SERVER_PORT}"
     else
-        print_warning "Backend is not responding at http://localhost:${SERVER_PORT}"
+        print_warning "Auth Backend is not responding at http://localhost:${SERVER_PORT}"
     fi
 
     if curl -sf "http://localhost:${FRONTEND_PORT}" > /dev/null 2>&1; then
-        print_success "Frontend is running at http://localhost:${FRONTEND_PORT}"
+        print_success "Auth Frontend is running at http://localhost:${FRONTEND_PORT}"
     else
-        print_warning "Frontend is not responding at http://localhost:${FRONTEND_PORT}"
+        print_warning "Auth Frontend is not responding at http://localhost:${FRONTEND_PORT}"
     fi
 }
 

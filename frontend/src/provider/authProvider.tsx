@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 interface PasswordStatus {
   force_change: boolean;
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserPermissions = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/me/permissions');
+      const response = await axios.get(`${API_URL}/me/permissions`);
       setUser(response.data);
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -97,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string): Promise<LoginResponse> => {
     try {
-      const loginResponse = await axios.post('http://localhost:8080/auth/login', {
+      const loginResponse = await axios.post(`${API_URL}/auth/login`, {
         username,
         password,
       });
@@ -115,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         tokenRequestData.redirect_uri = currentParams.get('redirect_uri') || `${window.location.origin}/auth/callback`;
       }
 
-      const tokenResponse = await axios.post('http://localhost:8080/auth/token', tokenRequestData);
+      const tokenResponse = await axios.post(`${API_URL}/auth/token`, tokenRequestData);
 
       const { access_token, refresh_token } = tokenResponse.data;
 
@@ -162,14 +163,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       code_challenge_method: 'S256'
     });
 
-    window.location.href = `http://localhost:8080/sso/login?${params}`;
+    window.location.href = `${API_URL}/sso/login?${params}`;
   };
 
   const logout = async () => {
     try {
       const currentToken = localStorage.getItem('jwt');
       if (currentToken) {
-        await axios.post('http://localhost:8080/sso/logout', { token: currentToken });
+        await axios.post(`${API_URL}/sso/logout`, { token: currentToken });
       }
     } catch {
     } finally {
@@ -188,7 +189,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/auth/token', {
+      const response = await axios.post(`${API_URL}/auth/token`, {
         grant_type: 'refresh_token',
         refresh_token: refreshTokenValue,
       });

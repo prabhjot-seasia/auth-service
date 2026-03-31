@@ -9,6 +9,7 @@ import { ApiDocumentation } from './ApiDocumentation';
 import axios from 'axios';
 import seasiaLogo from '../assets/seasia-logo.svg';
 import './Dashboard.css';
+import { API_URL } from '../config';
 
 interface Service {
   id: string;
@@ -39,7 +40,7 @@ export const Dashboard: React.FC = () => {
         console.error('No JWT token found');
         return;
       }
-      const response = await axios.get('http://localhost:8080/me/services', {
+      const response = await axios.get(`${API_URL}/me/services`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setServices(response.data.services || response.data);
@@ -196,7 +197,7 @@ export const Dashboard: React.FC = () => {
 
                         // Other services with redirect_uri: make clickable with SSO
                         if (service.redirect_uri) {
-                          const ssoUrl = new URL('http://localhost:8080/sso/login');
+                          const ssoUrl = new URL(`${API_URL}/sso/login`);
                           ssoUrl.searchParams.append('client_id', service.client_id);
                           ssoUrl.searchParams.append('redirect_uri', service.redirect_uri);
                           ssoUrl.searchParams.append('response_type', 'code');

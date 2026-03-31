@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 
-const AUTH_SERVICE_URL = 'http://localhost:8080';
+import { API_URL } from '../config';
+
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || 'auth-service-client';
 
 let exchangeStarted = false;
@@ -20,7 +21,7 @@ export const AuthCallback: React.FC = () => {
     }
 
     axios
-      .post(`${AUTH_SERVICE_URL}/auth/token`, {
+      .post(`${API_URL}/auth/token`, {
         grant_type: 'authorization_code',
         code,
         client_id: CLIENT_ID,

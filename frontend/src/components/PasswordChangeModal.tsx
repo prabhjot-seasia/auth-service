@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../provider/authProvider';
@@ -62,7 +63,7 @@ export const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
     setError('');
 
     try {
-      await axios.post('http://localhost:8080/auth/change-password', {
+      await axios.post(API_URL + '/auth/change-password', {
         current_password: currentPassword,
         new_password: newPassword
       }, {

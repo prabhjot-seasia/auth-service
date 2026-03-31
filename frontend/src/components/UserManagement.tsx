@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './UserManagement.css';
@@ -247,7 +248,7 @@ export const UserManagement: React.FC = () => {
         params.append('status', statusFilter);
       }
       
-      const response = await axios.get(`http://localhost:8080/users?${params.toString()}`);
+      const response = await axios.get(`${API_URL}/users?${params.toString()}`);
       
       if (response.data.users) {
         const newUsers = Array.isArray(response.data.users) ? response.data.users : [];
@@ -279,7 +280,7 @@ export const UserManagement: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/roles');
+      const response = await axios.get(API_URL + '/roles');
       setRoles(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
       console.error('Failed to fetch roles:', err);
@@ -288,7 +289,7 @@ export const UserManagement: React.FC = () => {
 
   const fetchUserById = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/users/${userId}`);
+      const response = await axios.get(`${API_URL}/users/${userId}`);
       return response.data;
     } catch (err) {
       console.error('Failed to fetch user:', err);
@@ -389,10 +390,10 @@ export const UserManagement: React.FC = () => {
           is_active: formData.is_active
         };
 
-        await axios.put(`http://localhost:8080/users/${editingUser.id}`, updateData);
+        await axios.put(`${API_URL}/users/${editingUser.id}`, updateData);
 
         if (formData.role_id !== (editingUser.role?.id || '')) {
-          await axios.put(`http://localhost:8080/users/${editingUser.id}/role`, {
+          await axios.put(`${API_URL}/users/${editingUser.id}/role`, {
             role_id: formData.role_id || null
           });
         }
@@ -405,10 +406,10 @@ export const UserManagement: React.FC = () => {
           last_name: formData.last_name
         };
 
-        const userResponse = await axios.post('http://localhost:8080/users', createData);
+        const userResponse = await axios.post(API_URL + '/users', createData);
 
         if (formData.role_id && userResponse.data.id) {
-          await axios.put(`http://localhost:8080/users/${userResponse.data.id}/role`, {
+          await axios.put(`${API_URL}/users/${userResponse.data.id}/role`, {
             role_id: formData.role_id
           });
         }
@@ -442,7 +443,7 @@ export const UserManagement: React.FC = () => {
 
   const performDelete = async (userId: string) => {
     try {
-      await axios.delete(`http://localhost:8080/users/${userId}`);
+      await axios.delete(`${API_URL}/users/${userId}`);
       await fetchUsers();
       setConfirmModal({ ...confirmModal, isOpen: false });
       showNotification('User deleted successfully', 'success');
@@ -515,7 +516,7 @@ export const UserManagement: React.FC = () => {
     const action = user.is_active ? 'deactivate' : 'activate';
     try {
       setSubmitting(true);
-      await axios.put(`http://localhost:8080/users/${user.id}`, {
+      await axios.put(`${API_URL}/users/${user.id}`, {
         ...user,
         is_active: !user.is_active
       });
@@ -581,7 +582,7 @@ export const UserManagement: React.FC = () => {
     try {
       setSubmitting(true);
 
-      await axios.put(`http://localhost:8080/users/${passwordUser.id}`, {
+      await axios.put(`${API_URL}/users/${passwordUser.id}`, {
         ...passwordUser,
         password: passwordData.newPassword
       });
@@ -640,7 +641,7 @@ export const UserManagement: React.FC = () => {
   // CSV functions
   const downloadCSV = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/users/export/csv', {
+      const response = await axios.get(API_URL + '/users/export/csv', {
         responseType: 'blob',
       });
       
@@ -666,7 +667,7 @@ export const UserManagement: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`http://localhost:8080/users/import/csv`, formData, {
+      const response = await axios.post(`${API_URL}/users/import/csv`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

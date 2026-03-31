@@ -58,6 +58,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:${SERVER_PORT:-8080}
     container_name: auth-react-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:80"
