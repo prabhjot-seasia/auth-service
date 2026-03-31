@@ -18,12 +18,6 @@ DEFAULT_FRONTEND_PORT="3001"
 DEFAULT_JWT_ACCESS_TTL="15"
 DEFAULT_JWT_REFRESH_TTL="10080"
 DEFAULT_ENVIRONMENT="development"
-DEFAULT_LOG_LEVEL="info"
-DEFAULT_LOG_FILE=""
-DEFAULT_LOG_FORMAT="json"
-DEFAULT_LOG_MAX_SIZE="100"
-DEFAULT_LOG_MAX_BACKUPS="5"
-DEFAULT_LOG_MAX_AGE="30"
 DEFAULT_USE_EXTERNAL_DB="false"
 
 # Current values (start with defaults)
@@ -40,12 +34,6 @@ JWT_SECRET=""
 JWT_ACCESS_TTL="$DEFAULT_JWT_ACCESS_TTL"
 JWT_REFRESH_TTL="$DEFAULT_JWT_REFRESH_TTL"
 ENVIRONMENT="$DEFAULT_ENVIRONMENT"
-LOG_LEVEL="$DEFAULT_LOG_LEVEL"
-LOG_FILE="$DEFAULT_LOG_FILE"
-LOG_FORMAT="$DEFAULT_LOG_FORMAT"
-LOG_MAX_SIZE="$DEFAULT_LOG_MAX_SIZE"
-LOG_MAX_BACKUPS="$DEFAULT_LOG_MAX_BACKUPS"
-LOG_MAX_AGE="$DEFAULT_LOG_MAX_AGE"
 USE_EXTERNAL_DB="$DEFAULT_USE_EXTERNAL_DB"
 
 # Actions
@@ -116,14 +104,6 @@ OPTIONS:
     --jwt-access-ttl MINUTES    JWT access token TTL in minutes (default: 15)
     --jwt-refresh-ttl MINUTES   JWT refresh token TTL in minutes (default: 10080)
 
-    Logging Configuration:
-    --log-level LEVEL           Log level: debug/info/warn/error (default: info)
-    --log-file PATH             Log file path (default: stdout)
-    --log-format FORMAT         Log format: json/text (default: json)
-    --log-max-size MB           Log file max size in MB (default: 100)
-    --log-max-backups COUNT     Number of log backups to keep (default: 5)
-    --log-max-age DAYS          Max age of log files in days (default: 30)
-
     Environment:
     --environment ENV           Environment: development/production (default: development)
 
@@ -168,12 +148,6 @@ while [[ $# -gt 0 ]]; do
         --jwt-access-ttl) JWT_ACCESS_TTL="$2"; shift 2 ;;
         --jwt-refresh-ttl) JWT_REFRESH_TTL="$2"; shift 2 ;;
         --environment) ENVIRONMENT="$2"; shift 2 ;;
-        --log-level) LOG_LEVEL="$2"; shift 2 ;;
-        --log-file) LOG_FILE="$2"; shift 2 ;;
-        --log-format) LOG_FORMAT="$2"; shift 2 ;;
-        --log-max-size) LOG_MAX_SIZE="$2"; shift 2 ;;
-        --log-max-backups) LOG_MAX_BACKUPS="$2"; shift 2 ;;
-        --log-max-age) LOG_MAX_AGE="$2"; shift 2 ;;
         --build) DO_BUILD=true; shift ;;
         --start) DO_START=true; shift ;;
         --stop) DO_STOP=true; shift ;;
@@ -220,21 +194,25 @@ FRONTEND_PORT=${FRONTEND_PORT}
 
 # External Database Flag
 USE_EXTERNAL_DB=${USE_EXTERNAL_DB}
-
-# Logging Configuration
-LOG_LEVEL=${LOG_LEVEL}
-LOG_FILE=${LOG_FILE}
-LOG_FORMAT=${LOG_FORMAT}
-LOG_MAX_SIZE=${LOG_MAX_SIZE}
-LOG_MAX_BACKUPS=${LOG_MAX_BACKUPS}
-LOG_MAX_AGE=${LOG_MAX_AGE}
 EOF
 
     print_success "Generated backend/.env"
 }
 
+# Export variables that docker-compose.yml references via ${VAR:-default}
+export_docker_vars() {
+    export DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME DB_SSL_MODE
+    export SERVER_PORT SERVER_HOST SERVER_MODE="$ENVIRONMENT"
+    export FRONTEND_PORT
+    export JWT_SECRET_KEY="$JWT_SECRET"
+    export JWT_ACCESS_TOKEN_TTL="$JWT_ACCESS_TTL"
+    export JWT_REFRESH_TOKEN_TTL="$JWT_REFRESH_TTL"
+    export FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
+}
+
 # Docker compose with profile
 dc() {
+    export_docker_vars
     if [[ "$USE_EXTERNAL_DB" == "true" ]]; then
         docker compose "$@"
     else
@@ -265,14 +243,6 @@ validate_config() {
         print_error "Invalid JWT refresh TTL: $JWT_REFRESH_TTL"
     fi
 
-    if ! [[ "$LOG_LEVEL" =~ ^(debug|info|warn|error)$ ]]; then
-        print_error "Invalid log level: $LOG_LEVEL (must be debug, info, warn, or error)"
-    fi
-
-    if ! [[ "$LOG_FORMAT" =~ ^(json|text)$ ]]; then
-        print_error "Invalid log format: $LOG_FORMAT (must be json or text)"
-    fi
-
     print_success "Configuration validated"
 }
 
@@ -283,22 +253,28 @@ do_init_db() {
         print_error "psql not found. Install PostgreSQL client to use --init-db"
     fi
 
+    # Resolve host.docker.internal to localhost for host-side psql
+    local psql_host="$DB_HOST"
+    if [[ "$psql_host" == "host.docker.internal" ]]; then
+        psql_host="localhost"
+    fi
+
     # Test connection
-    print_info "Testing database connection to ${DB_HOST}:${DB_PORT}..."
-    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
-        print_error "Cannot connect to database at ${DB_HOST}:${DB_PORT} with user ${DB_USER}"
+    print_info "Testing database connection to ${psql_host}:${DB_PORT}..."
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+        print_error "Cannot connect to database at ${psql_host}:${DB_PORT} with user ${DB_USER}"
     fi
     print_success "Database connection verified"
 
     # Create database if it doesn't exist
     print_info "Creating database ${DB_NAME} if it doesn't exist..."
-    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "CREATE DATABASE ${DB_NAME};" 2>/dev/null || true
+    PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "CREATE DATABASE ${DB_NAME};" 2>/dev/null || true
     print_success "Database ${DB_NAME} ready"
 
     # Run seed data if available
     if [[ -f "tests/seed-test-data.sql" ]]; then
         print_info "Running seed data script..."
-        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "tests/seed-test-data.sql"
+        PGPASSWORD="$DB_PASSWORD" psql -h "$psql_host" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "tests/seed-test-data.sql"
         print_success "Database seeded with test data"
     else
         print_warning "No seed data script found at tests/seed-test-data.sql"
@@ -317,8 +293,6 @@ do_build() {
 do_start() {
     print_info "Building and starting services..."
     generate_env
-
-    mkdir -p ./logs
 
     dc up -d --build
 
@@ -399,8 +373,10 @@ validate_config
 if [[ "$USE_EXTERNAL_DB" == "true" && "$DO_INIT_DB" == "false" && \
       ("$DO_START" == "true" || "$DO_BUILD" == "true" || "$DO_RESTART" == "true") ]]; then
     if command -v psql >/dev/null 2>&1; then
-        if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1; then
-            print_warning "Database ${DB_NAME} not found on ${DB_HOST}:${DB_PORT}, running init-db automatically..."
+        local_host="$DB_HOST"
+        [[ "$local_host" == "host.docker.internal" ]] && local_host="localhost"
+        if ! PGPASSWORD="$DB_PASSWORD" psql -h "$local_host" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1; then
+            print_warning "Database ${DB_NAME} not found on ${local_host}:${DB_PORT}, running init-db automatically..."
             do_init_db
         fi
     fi
