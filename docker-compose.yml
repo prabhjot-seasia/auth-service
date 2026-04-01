@@ -38,7 +38,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-production-secret-key-change-this}
       JWT_ACCESS_TOKEN_TTL: ${JWT_ACCESS_TOKEN_TTL:-15}
       JWT_REFRESH_TOKEN_TTL: ${JWT_REFRESH_TOKEN_TTL:-10080}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${AUTH_FRONTEND_URL:-http://localhost:3000}
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     depends_on:
@@ -59,7 +59,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://localhost:${SERVER_PORT:-8080}
+        REACT_APP_API_URL: ${AUTH_BACKEND_URL:-http://localhost:8080}
     container_name: auth-react-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:80"

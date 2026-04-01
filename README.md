@@ -190,9 +190,11 @@ npm start
 | `--db-ssl-mode MODE` | disable | SSL mode (disable/require/verify-full) |
 | `--use-external-db` | false | Use external database instead of Docker |
 
-### Auth Service Ports
+### Auth Service URLs & Ports
 | Option | Default | Description |
 |--------|---------|-------------|
+| `--auth-backend-url URL` | http://localhost:8080 | Full backend URL (use for non-localhost) |
+| `--auth-frontend-url URL` | http://localhost:3000 | Full frontend URL (use for non-localhost) |
 | `--auth-backend-port PORT` | 8080 | Auth backend API port |
 | `--auth-frontend-port PORT` | 3000 | Auth frontend UI port |
 | `--environment ENV` | development | Environment (development/production) |
@@ -236,6 +238,11 @@ npm start
 ./setup.sh --docker-db-port 5435 --start                 # Docker PostgreSQL on 5435
 ./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
            --docker-db-port 5435 --start                 # All custom ports
+
+# Backend on a different IP / hostname
+./setup.sh --auth-backend-url http://192.168.1.50:8080 --start
+./setup.sh --auth-backend-url http://192.168.1.50:9090 \
+           --auth-frontend-url http://192.168.1.50:3000 --start
 
 # External database with custom port
 ./setup.sh --use-external-db --db-port 5433 --start
