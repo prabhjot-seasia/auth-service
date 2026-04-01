@@ -27,6 +27,8 @@ DB_PORT_EXTERNAL="$DEFAULT_DOCKER_DB_PORT"
 SERVER_PORT="$DEFAULT_AUTH_BACKEND_PORT"
 SERVER_HOST="$DEFAULT_AUTH_BACKEND_HOST"
 FRONTEND_PORT="$DEFAULT_AUTH_FRONTEND_PORT"
+AUTH_BACKEND_URL=""
+AUTH_FRONTEND_URL=""
 JWT_SECRET=""
 JWT_ACCESS_TTL="$DEFAULT_JWT_ACCESS_TTL"
 JWT_REFRESH_TTL="$DEFAULT_JWT_REFRESH_TTL"
@@ -81,6 +83,12 @@ USAGE:
     ./setup.sh [OPTIONS]
 
 OPTIONS:
+    Auth Service URLs:
+    --auth-backend-url URL      Auth backend URL (default: http://localhost:8080)
+                                Use when backend is on a different IP or hostname
+    --auth-frontend-url URL     Auth frontend URL (default: http://localhost:3000)
+                                Use when frontend is on a different IP or hostname
+
     Auth Service Ports:
     --auth-backend-port PORT    Auth backend API port (default: 8080)
     --auth-frontend-port PORT   Auth frontend UI port (default: 3000)
@@ -139,6 +147,11 @@ EXAMPLES:
     ./setup.sh --use-external-db --db-host localhost --init-db --start
     ./setup.sh --use-external-db --db-port 5433 --start                 # Custom DB port
 
+    # Backend on a different IP
+    ./setup.sh --auth-backend-url http://192.168.1.50:8080 --start
+    ./setup.sh --auth-backend-url http://192.168.1.50:9090 \
+               --auth-frontend-url http://192.168.1.50:3000 --start
+
     # Production
     ./setup.sh --jwt-secret=mysecret --environment production --start
 
@@ -150,6 +163,8 @@ EOF
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --auth-backend-url) AUTH_BACKEND_URL="$2"; shift 2 ;;
+        --auth-frontend-url) AUTH_FRONTEND_URL="$2"; shift 2 ;;
         --auth-backend-port) SERVER_PORT="$2"; shift 2 ;;
         --auth-frontend-port) FRONTEND_PORT="$2"; shift 2 ;;
         --db-host) DB_HOST="$2"; shift 2 ;;
@@ -176,6 +191,15 @@ while [[ $# -gt 0 ]]; do
         *) print_error "Unknown option: $1. Use --help for usage." ;;
     esac
 done
+
+resolve_urls() {
+    if [[ -z "$AUTH_BACKEND_URL" ]]; then
+        AUTH_BACKEND_URL="http://localhost:${SERVER_PORT}"
+    fi
+    if [[ -z "$AUTH_FRONTEND_URL" ]]; then
+        AUTH_FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
+    fi
+}
 
 generate_env() {
     print_info "Generating backend/.env configuration..."
@@ -206,13 +230,15 @@ EOF
 }
 
 export_docker_vars() {
+    resolve_urls
     export DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME DB_SSL_MODE DB_PORT_EXTERNAL
     export SERVER_PORT SERVER_HOST SERVER_MODE="$ENVIRONMENT"
     export FRONTEND_PORT
+    export AUTH_BACKEND_URL AUTH_FRONTEND_URL
+    export FRONTEND_URL="$AUTH_FRONTEND_URL"
     export JWT_SECRET_KEY="$JWT_SECRET"
     export JWT_ACCESS_TOKEN_TTL="$JWT_ACCESS_TTL"
     export JWT_REFRESH_TOKEN_TTL="$JWT_REFRESH_TTL"
-    export FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
 }
 
 dc() {
@@ -300,9 +326,10 @@ do_start() {
 
     dc up -d --build
 
+    resolve_urls
     print_success "Services started"
-    print_info "Auth Backend:   http://localhost:${SERVER_PORT}"
-    print_info "Auth Frontend:  http://localhost:${FRONTEND_PORT}"
+    print_info "Auth Backend:   ${AUTH_BACKEND_URL}"
+    print_info "Auth Frontend:  ${AUTH_FRONTEND_URL}"
     echo ""
     print_info "Test credentials:"
     echo "  admin        / Admin@123  (super_admin)"
@@ -331,16 +358,17 @@ do_status() {
     dc ps 2>/dev/null || true
     echo ""
 
-    if curl -sf "http://localhost:${SERVER_PORT}/health" > /dev/null 2>&1; then
-        print_success "Auth Backend is running at http://localhost:${SERVER_PORT}"
+    resolve_urls
+    if curl -sf "${AUTH_BACKEND_URL}/health" > /dev/null 2>&1; then
+        print_success "Auth Backend is running at ${AUTH_BACKEND_URL}"
     else
-        print_warning "Auth Backend is not responding at http://localhost:${SERVER_PORT}"
+        print_warning "Auth Backend is not responding at ${AUTH_BACKEND_URL}"
     fi
 
-    if curl -sf "http://localhost:${FRONTEND_PORT}" > /dev/null 2>&1; then
-        print_success "Auth Frontend is running at http://localhost:${FRONTEND_PORT}"
+    if curl -sf "${AUTH_FRONTEND_URL}" > /dev/null 2>&1; then
+        print_success "Auth Frontend is running at ${AUTH_FRONTEND_URL}"
     else
-        print_warning "Auth Frontend is not responding at http://localhost:${FRONTEND_PORT}"
+        print_warning "Auth Frontend is not responding at ${AUTH_FRONTEND_URL}"
     fi
 }
 

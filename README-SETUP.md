@@ -24,9 +24,11 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 
 ## Setup Script Options
 
-### Auth Service Ports
+### Auth Service URLs
 | Option | Default | Description |
 |--------|---------|-------------|
+| `--auth-backend-url URL` | http://localhost:8080 | Full backend URL (use for non-localhost) |
+| `--auth-frontend-url URL` | http://localhost:3000 | Full frontend URL (use for non-localhost) |
 | `--auth-backend-port PORT` | 8080 | Auth backend API port |
 | `--auth-frontend-port PORT` | 3000 | Auth frontend UI port |
 
@@ -76,6 +78,13 @@ If the database doesn't exist, `--init-db` runs automatically on `--start`.
 ./setup.sh --docker-db-port 5435 --start                        # Docker PostgreSQL on 5435
 ./setup.sh --auth-backend-port 9090 --auth-frontend-port 3005 \
            --docker-db-port 5435 --start                        # All custom ports
+```
+
+### Backend on a Different IP / Hostname
+```bash
+./setup.sh --auth-backend-url http://192.168.1.50:8080 --start
+./setup.sh --auth-backend-url http://192.168.1.50:9090 \
+           --auth-frontend-url http://192.168.1.50:3000 --start
 ```
 
 ### External Database
